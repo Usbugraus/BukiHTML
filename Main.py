@@ -286,8 +286,6 @@ win.bind("<Control-z>", lambda e: undo_())
 win.bind("<Control-y>", lambda e: redo_())
 win.bind("<Control-Shift-N>", lambda e: subprocess.Popen([sys.executable, __file__]))
 win.bind("<Control-p>", lambda e: run_())
-win.bind("<Control-Shift-P>", lambda e: run_on_browser())
-
 
 menu = tk.Menu(win)
 win.config(menu=menu)
@@ -320,4 +318,5 @@ text.bind('<Button-3>', lambda event: edit_menu.tk_popup(event.x_root, event.y_r
 text.bind("<KeyRelease>", highlighter)
 win.protocol("WM_DELETE_WINDOW", save_on_exit)                    
 win.mainloop()
+
 
