@@ -173,12 +173,16 @@ def update(event=None):
         text.edit_modified(False)
         
 def run_():
+    global current_file
     try:
-        code = text.get("1.0", "end")
-        tmp_html = tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode='w', encoding='utf-8')
-        tmp_html.write(code)
-        tmp_html.close()
-        webbrowser.open(tmp_html.name)
+        if not current_file:
+            code = text.get("1.0", "end")
+            tmp_html = tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode='w', encoding='utf-8')
+            tmp_html.write(code)
+            tmp_html.close()
+            webbrowser.open(tmp_html.name)
+        else:
+            webbrowser.open(current_file)
     except Exception as e:
         messagebox.showerror("Hata" f"Dosya tarayıcıda açılamadı:\n{str(e)}")
 
@@ -208,34 +212,34 @@ other_toolbar_frame.grid(row=0, column=1, sticky="e")
 other_toolbar = tk.Frame(other_toolbar_frame, bd=1, relief="raised")
 other_toolbar.grid(row=0, column=0, padx=10, pady=10, sticky="e")
 
-new = tk.Button(file_toolbar, text="📄", width=4, bd=0, command=new_file, activebackground="yellow", font=("Segoe UI Emoji", 9))
+new = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=new_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 new.grid(row=0, column=0, padx=(3, 0), pady=3)
 
-open_ = tk.Button(file_toolbar, text="📂", width=4, bd=0, command=open_file, activebackground="yellow", font=("Segoe UI Emoji", 9))
+open_ = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=open_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 open_.grid(row=0, column=1, pady=3)
 
-save = tk.Button(file_toolbar, text="💾", width=4, bd=0, command=save_file, activebackground="yellow", font=("Segoe UI Emoji", 9))
+save = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=save_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 save.grid(row=0, column=2, pady=3)
 
-run = tk.Button(file_toolbar, text="📰", width=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe UI Emoji", 9), activeforeground="white")
+run = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe Fluent Icons", 10), activeforeground="white")
 run.grid(row=0, column=3, padx=(0, 3), pady=3)
 
-cut = tk.Button(text_toolbar, text="✂", width=4, bd=0, command=lambda: text.event_generate("<<Cut>>"), font=("Segoe UI Emoji", 9), activebackground="yellow")
+cut = tk.Button(text_toolbar, text="", width=5, pady=4, bd=0, command=lambda: text.event_generate("<<Cut>>"), font=("Segoe Fluent Icons", 10), activebackground="yellow")
 cut.grid(row=0, column=0, padx=(3, 0), pady=3)
 
-copy = tk.Button(text_toolbar, text="📑", width=4, bd=0, command=lambda: text.event_generate("<<Copy>>"), activebackground="yellow", font=("Segoe UI Emoji", 9))
+copy = tk.Button(text_toolbar, text="", width=5, pady=4, bd=0, command=lambda: text.event_generate("<<Copy>>"), activebackground="yellow", font=("Segoe Fluent Icons", 10))
 copy.grid(row=0, column=1, pady=3)
 
-paste = tk.Button(text_toolbar, text="📋", width=4, bd=0, command=lambda: text.event_generate("<<Paste>>"), activebackground="yellow", font=("Segoe UI Emoji", 9))
+paste = tk.Button(text_toolbar, text="", width=5, pady=4, bd=0, command=lambda: text.event_generate("<<Paste>>"), activebackground="yellow", font=("Segoe Fluent Icons", 10))
 paste.grid(row=0, column=2, padx=(0, 3), pady=3)
 
-undo = tk.Button(do_toolbar, text="↶", width=4, bd=0, command=undo_, font=("Segoe UI Emoji", 9), activebackground="yellow")
+undo = tk.Button(do_toolbar, text="", width=5, pady=4, bd=0, command=undo_, font=("Segoe Fluent Icons", 10), activebackground="yellow")
 undo.grid(row=0, column=0, padx=(3, 0), pady=3)
 
-redo = tk.Button(do_toolbar, text="↷", width=4, bd=0, command=redo_, font=("Segoe UI Emoji", 9), activebackground="yellow")
+redo = tk.Button(do_toolbar, text="", width=5, pady=4, bd=0, command=redo_, font=("Segoe Fluent Icons", 10), activebackground="yellow")
 redo.grid(row=0, column=1, padx=(0, 3), pady=3)
 
-about = tk.Button(other_toolbar, text="⁝", width=4, bd=0, command=lambda: messagebox.showinfo("Hakkında", "BukiHTML v1.0.5\n2025 Buğra US"), activebackground="yellow", font=("Segoe UI Emoji", 9))
+about = tk.Button(other_toolbar, text="", width=5, pady=4, bd=0, command=lambda: messagebox.showinfo("Hakkında", "BukiHTML v1.0.6\n2025 Buğra US"), activebackground="yellow", font=("Segoe Fluent Icons", 10))
 about.grid(row=0, column=0, padx=3, pady=3, sticky="e")
 
 scroll = tk.Scrollbar(editor)
@@ -286,6 +290,7 @@ win.bind("<Control-z>", lambda e: undo_())
 win.bind("<Control-y>", lambda e: redo_())
 win.bind("<Control-Shift-N>", lambda e: subprocess.Popen([sys.executable, __file__]))
 win.bind("<Control-p>", lambda e: run_())
+
 
 menu = tk.Menu(win)
 win.config(menu=menu)
