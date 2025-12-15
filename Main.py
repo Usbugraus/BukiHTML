@@ -8,6 +8,10 @@ import os, sys
 import webbrowser
 import json, traceback
 from ToolTip import ToolTip
+from ToolWindow import toolwindow
+from MarkdownToHTML import md2html_dialog
+from SyntaxHighlighter import highlighter
+from ErrorHandler import error_handler
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -24,7 +28,7 @@ TAG_COLORS = {
     "tag": "#0000bf",
     "attribute": "#bf0000",
     "value": "#00bf00",
-    "comment": "#008000",
+    "comment": "#808080",
 }
 
 win = tk.Tk()
@@ -35,7 +39,7 @@ win.grid_columnconfigure(0, weight=1)
 win.grid_columnconfigure(1, weight=1)
 
 def report_callback_exception(exc_type, exc_value, exc_traceback):
-    tk_error_handler(exc_type, exc_value, exc_traceback)
+    error_handler(exc_type, exc_value, exc_traceback, parent=win, language=language.get())
 
 win.report_callback_exception = report_callback_exception
 
@@ -61,105 +65,9 @@ for tag, color in TAG_COLORS.items():
         foreground=color,
         selectforeground="white",
     )
-    
-def toolwindow(window):
-    window.update_idletasks()
-    hwnd = ctypes.windll.user32.GetParent(window.winfo_id())
-    
-    GWL_STYLE = -16
-    WS_MINIMIZEBOX = 0x00020000
-    WS_MAXIMIZEBOX = 0x00010000
-    
-    style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
-    
-    style = style & ~WS_MINIMIZEBOX & ~WS_MAXIMIZEBOX
-    
-    ctypes.windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
-    
-    ctypes.windll.user32.SetWindowPos(hwnd, 0, 0, 0, 0, 0, 
-                                      0x0002 | 0x0001 | 0x0004 | 0x0020 | 0x0010)
-    
-def tk_error_handler(exc_type, exc_value, exc_traceback):
-    tb_text = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    errorwin = tk.Toplevel(win)
-    errorwin.title("Hata")
-    errorwin.resizable(False, False)
-    errorwin.transient(win)
-    errorwin.lift()
-    errorwin.focus_force()
-    toolwindow(errorwin)
-    errorwin.grab_set()
-    
-    frame = tk.Frame(errorwin, bd=1, relief="raised")
-    frame.pack(padx=20, pady=20, fill="both", expand=True)
-    
-    if language.get() == "türkçe":
-        tk.Label(frame, text="Bir sorun oluştu: ").pack(anchor="nw", padx=5, pady=(5, 0))
-    elif language.get() == "english":
-        tk.Label(frame, text="An error occured: ").pack(anchor="nw", padx=5, pady=(5, 0))
-    
-    error = tk.Text(frame, bd=1, font=("Consolas", 10), width=50, height=20, wrap="none", padx=5, pady=5)
-    error.insert(1.0, traceback.format_exc())
-    error.config(state="disabled")
-    
-    scroll = tk.Scrollbar(frame, orient="vertical")
-    scroll.pack(padx=(0, 5), pady=5, fill="y", side='right')
-    scroll.config(command=error.yview)
-    
-    scroll2 = tk.Scrollbar(frame, orient="horizontal")
-    scroll2.pack(padx=5, pady=(0, 5), fill="x", side='bottom')
-    scroll2.config(command=error.xview)
-    
-    error.config(yscrollcommand=scroll.set)
-    error.config(xscrollcommand=scroll2.set)
-    error.pack(padx=(5, 0), pady=(5, 0), fill="both", expand=True)
-    
-    frame2 = tk.Frame(errorwin, bd=1, relief="raised")
-    frame2.pack(padx=20, pady=(0, 20))
-    
-    def copy_error():
-         error_content = error.get("1.0", "end-1c")
-         error.clipboard_clear()
-         error.clipboard_append(error_content)
-         cp.config(state="disabled")
-    
-    ok = tk.Button(frame2, text="Tamam", bd=1, command=lambda: errorwin.destroy(), width=30)
-    ok.pack(padx=5, pady=5, side="right")
-    cp = tk.Button(frame2, text="Kopyala", bd=1, command=copy_error, width=30)
-    cp.pack(padx=(5, 0), pady=5, side="left")
-    
-    if language.get() == "türkçe":
-        ok.config(text="Tamam")
-        cp.config(text="Kopyala")
-    elif language.get() == "english":
-        ok.config(text="Ok")
-        cp.config(text="Copy")
 
-def highlighter(event=None):
-    content = text.get("1.0", "end-1c")
-    
-    for tag in TAG_COLORS:
-        text.tag_remove(tag, "1.0", "end")
-    
-    for match in re.finditer(r"<!--.*?-->", content, re.DOTALL):
-        start = f"1.0 + {match.start()} chars"
-        end = f"1.0 + {match.end()} chars"
-        text.tag_add("comment", start, end)
-    
-    for match in re.finditer(r"<([^>]+)>", content):
-        tag_content = match.group(1)
-        start_index = match.start(1)
-        end_index = match.end(1)
-        text.tag_add("tag", f"1.0 + {start_index} chars", f"1.0 + {end_index} chars")
-        
-        for attr_match in re.finditer(r'(\w+)=(".*?"|\'.*?\')', tag_content):
-            attr_start = f"1.0 + {start_index + attr_match.start(1)} chars"
-            attr_end = f"1.0 + {start_index + attr_match.end(1)} chars"
-            val_start = f"1.0 + {start_index + attr_match.start(2)} chars"
-            val_end = f"1.0 + {start_index + attr_match.end(2)} chars"
-            
-            text.tag_add("attribute", attr_start, attr_end)
-            text.tag_add("value", val_start, val_end)
+def highlight(widget):
+    highlighter(widget)
 
 def save_file(force=False):
     global current_file, changed
@@ -180,17 +88,23 @@ def save_file(force=False):
 def save_as():
     global current_file, filepath
 
-    if language.get() == "turkish":
+    if language.get() == "türkçe":
         filepath = filedialog.asksaveasfilename(
             defaultextension='.html',
             filetypes=[('HTML Dosyası', '*.html'), ('Tüm Dosyalar', '*.*')],
             title='Kaydet'
         )
-    else:
+    elif language.get() == "english":
         filepath = filedialog.asksaveasfilename(
             defaultextension='.html',
             filetypes=[('HTML Files', '*.html'), ('All Files', '*.*')],
             title='Save'
+        )
+    elif language.get() == "deutsch":
+        filepath = filedialog.asksaveasfilename(
+            defaultextension='.html',
+            filetypes=[('HTML Dateien', '*.html'), ('Alle Dateien', '*.*')],
+            title='Speichern'
         )
 
     if filepath:
@@ -205,6 +119,8 @@ def open_file():
         filepath = filedialog.askopenfilename(title='Aç', filetypes=[('HTML Dosyası', '*.html'), ('Tüm dosyalar', '*.*')])
     elif language.get() == "english":
         filepath = filedialog.askopenfilename(title='Open', filetypes=[('HTML Files', '*.html'), ('All Files', '*.*')])
+    elif language.get() == "deutsch":
+        filepath = filedialog.askopenfilename(title='Öffnen', filetypes=[('HTML Dateien', '*.html'), ('Alle Dateien', '*.*')])
     
     if filepath:
         with open(filepath, 'r', encoding='utf-8') as file:
@@ -216,7 +132,7 @@ def open_file():
         changed = False
         text.edit_modified(False)
         update()
-        highlighter()
+        highlight(text)
         save.config(state="disabled")
 
 def new_file():
@@ -226,6 +142,8 @@ def new_file():
             confirm = messagebox.askyesnocancel("Kaydet", "Bu belgeyi kaydetmek istiyor musunuz?")
         elif language.get() == "english":
             confirm = messagebox.askyesnocancel("Save", "Do you want to save this document?")
+        elif language.get() == "deutsch":
+            confirm = messagebox.askyesnocancel("Speichern", "Möchten Sie dieses Dokument speichern?")
             
         if confirm:
             save_file()
@@ -250,6 +168,8 @@ def update_title():
         title = "BukiHTML - Yeni" if current_file is None else f"BukiHTML - {current_file}"
     elif language.get() == "english":
         title = "BukiHTML - New" if current_file is None else f"BukiHTML - {current_file}"
+    elif language.get() == "deutsch":
+        title = "BukiHTML - Neu" if current_file is None else f"BukiHTML - {current_file}"
         
     if changed:
         title += " *"
@@ -262,6 +182,8 @@ def save_on_exit():
             confirm = messagebox.askyesnocancel("Kaydet", "Bu belgeyi kaydetmek istiyor musunuz?")
         elif language.get() == "english":
             confirm = messagebox.askyesnocancel("Save", "Do you want to save this document?")
+        elif language.get() == "deutsch":
+            confirm = messagebox.askyesnocancel("Speichern", "Möchten Sie dieses Dokument speichern?")
             
         if confirm:
             save_file()
@@ -317,6 +239,8 @@ def show_about():
         messagebox.showinfo("Hakkında", "BukiHTML v1.1.0\n© Telif Hakkı 2025 Buğra US")
     elif language.get() == "english":
         messagebox.showinfo("About", "BukiHTML v1.1.0\n© Copyright 2025 Buğra US")
+    elif language.get() == "deutsch":
+        messagebox.showinfo("Über", "BukiHTML v1.1.0\n© Urheberrecht 2025 Buğra US")
     
 def autosv(event):
     global current_file
@@ -380,7 +304,7 @@ about = tk.Button(other_toolbar, text="", width=5, pady=4, bd=0, command=show
 about.grid(row=0, column=0, padx=3, pady=3, sticky="e")
 
 scroll = tk.Scrollbar(editor)
-scroll.pack(side="right", padx=(0, 5), pady=(0, 5), fill="y")
+scroll.pack(side="right", padx=(0, 5), pady=5, fill="y")
 scroll.config(command=text.yview)
 
 scroll_h = tk.Scrollbar(editor, orient="horizontal")
@@ -388,7 +312,7 @@ scroll_h.pack(side="bottom", padx=(5, 0), pady=(0, 5), fill="x")
 scroll_h.config(command=text.xview)
 text.config(xscrollcommand=scroll_h.set, yscrollcommand=scroll.set)
 
-text.pack(fill="both", padx=(5, 0), pady=5, expand=True)
+text.pack(fill="both", padx=(5, 0), pady=(5, 0), expand=True)
 
 def indent(event=None):
     try:
@@ -454,7 +378,13 @@ def update_settings(*args):
                             "Araç İpuçlarını Göster",
                             "Dil"
                             ]
-                        }
+                        },
+            "tools": {"label": "Araçlar",
+                      "menus": [
+                          "HTML Formları", ["Başlıklar", "Metin", "Diğer"], 
+                          "Markdown'dan HTML'e",
+                          ]
+                      }
             }
     elif language.get() == "english":
         menu_labels = {
@@ -482,11 +412,55 @@ def update_settings(*args):
                     },
             "settings":{"label": "Settings",
                         "menus":[
-                            "Auto Save",
+                            "Auto-Save",
                             "Show Tooltips",
                             "Language"
                             ]
-                        }
+                        },
+            "tools": {"label": "Tools",
+                      "menus": [
+                          "HTML Forms", ["Headers", "Text", "Other"], 
+                          "Markdown to HTML",
+                          ]
+                      }
+            }
+    elif language.get() == "deutsch":
+        menu_labels = {
+            "file":{"label": "Datei",
+                    "menus":[
+                        "Neu",
+                        "Neues Fenster",
+                        "Öffnen",
+                        "Speichern",
+                        "Speichern Unter",
+                        "Ausgang"
+                        ]
+                    },
+            "edit":{"label": "Ordnung",
+                    "menus":[
+                        "Rückgängig",
+                        "Wiederholen",
+                        "Schneiden",
+                        "Kopieren",
+                        "Einfügen",
+                        "Alles Auswählen",
+                        "Zeile Einrücken",
+                        "Einzug Der Zeile Verringern"
+                        ]
+                    },
+            "settings":{"label": "Einstellungen",
+                        "menus":[
+                            "Automatisch Speichern",
+                            "Tooltipps Anzeigen",
+                            "Sprache"
+                            ]
+                        },
+            "tools": {"label": "Werkzeuge",
+                      "menus": [
+                          "HTML-Formulare", ["Titel", "Text", "Andere"], 
+                          "Von Markdown zu HTML",
+                          ]
+                      }
             }
     
     if language.get() == "türkçe":
@@ -512,6 +486,18 @@ def update_settings(*args):
         ToolTip(save, "Save - Ctrl+S", shown=show_tooltip.get())
         ToolTip(open_, "Open - Ctrl+O", shown=show_tooltip.get())
         ToolTip(new, "New - Ctrl+N", shown=show_tooltip.get())
+        
+    elif language.get() == "deutsch":
+        ToolTip(about, "Über", shown=show_tooltip.get())
+        ToolTip(redo, "Wiederholen - Ctrl+Y", shown=show_tooltip.get())
+        ToolTip(undo, "Rückgängig - Ctrl+Z", shown=show_tooltip.get())
+        ToolTip(paste, "Einfügen - Ctrl+V", shown=show_tooltip.get())
+        ToolTip(copy, "Kopieren - Ctrl+C", shown=show_tooltip.get())
+        ToolTip(cut, "Schneiden - Ctrl+X", shown=show_tooltip.get())
+        ToolTip(run, "Vorschau - Ctrl+P", shown=show_tooltip.get())
+        ToolTip(save, "Speichern - Ctrl+S", shown=show_tooltip.get())
+        ToolTip(open_, "Öffnen - Ctrl+O", shown=show_tooltip.get())
+        ToolTip(new, "Neu - Ctrl+N", shown=show_tooltip.get())
     
     menu.entryconfig(1, label=menu_labels["file"]["label"])
     file_menu.entryconfig(0, label=menu_labels["file"]["menus"][0])
@@ -535,6 +521,13 @@ def update_settings(*args):
     pre_menu.entryconfig(0, label=menu_labels["settings"]["menus"][0])
     pre_menu.entryconfig(1, label=menu_labels["settings"]["menus"][1])
     pre_menu.entryconfig(2, label=menu_labels["settings"]["menus"][2])
+    
+    menu.entryconfig(4, label=menu_labels["tools"]["label"])
+    tool_menu.entryconfig(0, label=menu_labels["tools"]["menus"][0])
+    tool_menu.entryconfig(1, label=menu_labels["tools"]["menus"][2])
+    form_menu.entryconfig(0, label=menu_labels["tools"]["menus"][1][0])
+    form_menu.entryconfig(1, label=menu_labels["tools"]["menus"][1][1])
+    form_menu.entryconfig(2, label=menu_labels["tools"]["menus"][1][2])
     
     update_title()
 
@@ -587,13 +580,52 @@ pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=show_t
 lang_menu = tk.Menu(menu, tearoff=0)
 lang_menu.add_radiobutton(label='Türkçe', variable=language, value="türkçe")
 lang_menu.add_radiobutton(label='English', variable=language, value="english")
+lang_menu.add_radiobutton(label='Deutsch', variable=language, value="deutsch")
 pre_menu.add_cascade(menu=lang_menu, label="")
 menu.add_cascade(menu=pre_menu, label="")
+
+tool_menu = tk.Menu(menu, tearoff=0)
+form_menu = tk.Menu(tool_menu, tearoff=0)
+
+title_menu = tk.Menu(form_menu, tearoff=0)
+title_menu.add_command(label="<h1>", command=lambda: [text.insert(tk.INSERT, """<h1></h1>"""), highlight(text)])
+title_menu.add_command(label="<h2>", command=lambda: [text.insert(tk.INSERT, """<h2></h2>"""), highlight(text)])
+title_menu.add_command(label="<h3>", command=lambda: [text.insert(tk.INSERT, """<h3></h3>"""), highlight(text)])
+title_menu.add_command(label="<h4>", command=lambda: [text.insert(tk.INSERT, """<h4></h4>"""), highlight(text)])
+title_menu.add_command(label="<h5>", command=lambda: [text.insert(tk.INSERT, """<h5></h5>"""), highlight(text)])
+title_menu.add_command(label="<h6>", command=lambda: [text.insert(tk.INSERT, """<h6></h6>"""), highlight(text)])
+form_menu.add_cascade(menu=title_menu, label="")
+
+text_menu = tk.Menu(form_menu, tearoff=0)
+text_menu.add_command(label="<p>", command=lambda: [text.insert(tk.INSERT, """<p></p>"""), highlight(text)])
+text_menu.add_command(label="<b>", command=lambda: [text.insert(tk.INSERT, """<b></b>"""), highlight(text)])
+text_menu.add_command(label="<i>", command=lambda: [text.insert(tk.INSERT, """<i></i>"""), highlight(text)])
+text_menu.add_command(label="<u>", command=lambda: [text.insert(tk.INSERT, """<u></u>"""), highlight(text)])
+text_menu.add_command(label="<mark>", command=lambda: [text.insert(tk.INSERT, """<mark></mark>"""), highlight(text)])
+text_menu.add_command(label="<sub>", command=lambda: [text.insert(tk.INSERT, """<sub></sub>"""), highlight(text)])
+text_menu.add_command(label="<sup>", command=lambda: [text.insert(tk.INSERT, """<sup></sup>"""), highlight(text)])
+form_menu.add_cascade(menu=text_menu, label="")
+
+other_menu = tk.Menu(form_menu, tearoff=0)
+other_menu.add_command(label="<span>", command=lambda: [text.insert(tk.INSERT, """<span></span>"""), highlight(text)])
+other_menu.add_command(label="<div>", command=lambda: [text.insert(tk.INSERT, """<div></div>"""), highlight(text)])
+other_menu.add_command(label="<br>", command=lambda: [text.insert(tk.INSERT, """<br>"""), highlight(text)])
+other_menu.add_command(label="<hr>", command=lambda: [text.insert(tk.INSERT, """<hr>"""), highlight(text)])
+other_menu.add_command(label="<pre>", command=lambda: [text.insert(tk.INSERT, """<pre></pre>"""), highlight(text)])
+other_menu.add_command(label="<code>", command=lambda: [text.insert(tk.INSERT, """<code></code>"""), highlight(text)])
+other_menu.add_command(label="<blockquote>", command=lambda: [text.insert(tk.INSERT, """<blockquote cite=""></blockquote>"""), highlight(text)])
+other_menu.add_command(label="<q>", command=lambda: [text.insert(tk.INSERT, """<q cite=""></q>"""), highlight(text)])
+other_menu.add_command(label="<link>", command=lambda: [text.insert(tk.INSERT, """<a href=""></a>"""), highlight(text)])
+form_menu.add_cascade(menu=other_menu, label="")
+
+tool_menu.add_cascade(menu=form_menu, label="")
+tool_menu.add_command(label="", command=lambda: md2html_dialog(win, language=language.get()))
+menu.add_cascade(menu=tool_menu, label="")
 
 update_settings()
 
 text.bind('<Button-3>', lambda event: edit_menu.tk_popup(event.x_root, event.y_root))
-text.bind("<KeyRelease>", highlighter)
+text.bind("<KeyRelease>", lambda event: highlight(text))
 text.bind("<KeyRelease>", autosv, add='+')
 win.protocol("WM_DELETE_WINDOW", save_on_exit)                    
 win.mainloop()
