@@ -192,15 +192,6 @@ def save_on_exit():
             win.destroy()
     else:
         win.destroy()
-    
-    config = {
-        "show_tooltip": show_tooltip.get(),
-        "language": language.get(),
-        "auto_save": auto_save.get()
-        }
-        
-    with open(configuration_file, "w", encoding="utf-8") as f:
-        cfile = json.dump(config, f, ensure_ascii=False, indent=4)
               
 def undo_():
     try:
@@ -236,11 +227,11 @@ def run_():
         
 def show_about():
     if language.get() == "türkçe":
-        messagebox.showinfo("Hakkında", "BukiHTML v1.1.0\n© Telif Hakkı 2025 Buğra US")
+        messagebox.showinfo("Hakkında", "BukiHTML v1.1.5\n© Telif Hakkı 2025 Buğra US")
     elif language.get() == "english":
-        messagebox.showinfo("About", "BukiHTML v1.1.0\n© Copyright 2025 Buğra US")
+        messagebox.showinfo("About", "BukiHTML v1.1.5\n© Copyright 2025 Buğra US")
     elif language.get() == "deutsch":
-        messagebox.showinfo("Über", "BukiHTML v1.1.0\n© Urheberrecht 2025 Buğra US")
+        messagebox.showinfo("Über", "BukiHTML v1.1.5\n© Urheberrecht 2025 Buğra US")
     
 def autosv(event):
     global current_file
@@ -347,7 +338,7 @@ def unindent(event=None):
     return "break" 
 
 def update_settings(*args):
-    global menu_labels
+    global menu_labels, configuration_file
     if language.get() == "türkçe":
         menu_labels = {
             "file":{"label": "Dosya",
@@ -530,6 +521,15 @@ def update_settings(*args):
     form_menu.entryconfig(2, label=menu_labels["tools"]["menus"][1][2])
     
     update_title()
+    
+    config = {
+        "show_tooltip": show_tooltip.get(),
+        "language": language.get(),
+        "auto_save": auto_save.get()
+        }
+        
+    with open(configuration_file, "w", encoding="utf-8") as f:
+        cfile = json.dump(config, f, ensure_ascii=False, indent=4)
 
 show_tooltip.trace_add("write", update_settings)
 language.trace_add("write", update_settings)
