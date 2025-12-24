@@ -24,11 +24,12 @@ except Exception:
 changed = False
 current_file = None
 filepath = None
+font_size = 10
 TAG_COLORS = {
-    "tag": "#0000bf",
-    "attribute": "#bf0000",
-    "value": "#00bf00",
-    "comment": "#808080",
+    "tag": ["#0000bf", ("Consolas", font_size)],
+    "attribute": ["#bf0000", ("Consolas", font_size)],
+    "value": ["#00bf00", ("Consolas", font_size)],
+    "comment": ["#808080", ("Consolas", 10, "italic")],
 }
 
 win = tk.Tk()
@@ -45,25 +46,38 @@ win.report_callback_exception = report_callback_exception
 
 configuration_file = "Configuration.json"
 
-with open(configuration_file, "r", encoding="utf-8") as f:
-    configuration = json.load(f)
+if os.path.exists(configuration_file):
+    with open(configuration_file, "r", encoding="utf-8") as f:
+        configuration = json.load(f)
+else:
+    configuration = {
+        "show_tooltip": True,
+        "language": "english",
+        "auto_save": False
+        }
           
 show_tooltip = tk.BooleanVar(value=configuration["show_tooltip"])
 language = tk.StringVar(value=configuration["language"])
 auto_save = tk.BooleanVar(value=configuration["auto_save"])
+fullscreen = tk.BooleanVar(value=False)
+cover = tk.BooleanVar(value=False)
 
 menu_labels = {}
 
 editor = tk.Frame(win, bd=1, relief="raised", width=800, height=600)
-editor.grid(padx=10, pady=(0, 10), row=1, column=0, columnspan=2, sticky="nsew")
+editor.grid(padx=10, pady=10, row=1, column=0, columnspan=2, sticky="nsew")
+
+status_bar = tk.Label(win, bd=1, relief="raised", text="", padx=5, pady=5, anchor="w")
+status_bar.grid(padx=10, pady=(0, 10), row=2, column=0, columnspan=2, sticky="ew")
 
 text = tk.Text(editor, wrap="none", width=60, height=20, font=("Consolas", 10), bd=1, undo=True, padx=5, pady=5)
 
-for tag, color in TAG_COLORS.items():
+for tag, style in TAG_COLORS.items():
     text.tag_config(
         tag,
-        foreground=color,
+        foreground=style[0],
         selectforeground="white",
+        font=style[1]
     )
 
 def highlight(widget):
@@ -83,7 +97,7 @@ def save_file(force=False):
         win.title(f'BukiHTML - {current_file}')
         changed = False
         save.config(state="disabled")
-
+        update_status()
 
 def save_as():
     global current_file, filepath
@@ -134,6 +148,7 @@ def open_file():
         update()
         highlight(text)
         save.config(state="disabled")
+        update_status()
 
 def new_file():
     global current_file, filepath, changed
@@ -161,6 +176,7 @@ def new_file():
     text.yview_moveto(0)
     text.config(xscrollcommand=scroll_h.set, yscrollcommand=scroll.set)
     save.config(state="disabled")
+    update_status()
     win.update_idletasks()
 
 def update_title():
@@ -227,11 +243,11 @@ def run_():
         
 def show_about():
     if language.get() == "türkçe":
-        messagebox.showinfo("Hakkında", "BukiHTML v1.1.5\n© Telif Hakkı 2025 Buğra US")
+        messagebox.showinfo("Hakkında", "BukiHTML v1.2.0\n© Telif Hakkı 2025 Buğra US")
     elif language.get() == "english":
-        messagebox.showinfo("About", "BukiHTML v1.1.5\n© Copyright 2025 Buğra US")
+        messagebox.showinfo("About", "BukiHTML v1.2.0\n© Copyright 2025 Buğra US")
     elif language.get() == "deutsch":
-        messagebox.showinfo("Über", "BukiHTML v1.1.5\n© Urheberrecht 2025 Buğra US")
+        messagebox.showinfo("Über", "BukiHTML v1.2.0\n© Urheberrecht 2025 Buğra US")
     
 def autosv(event):
     global current_file
@@ -249,50 +265,32 @@ if os.path.exists(icon_path):
 toolbar_frame = tk.Frame(win)
 toolbar_frame.grid(row=0, column=0, sticky="ew")
 
-file_toolbar = tk.Frame(toolbar_frame, bd=1, relief="raised")
-file_toolbar.grid(row=0, column=0, padx=(10, 0), pady=10, sticky="w")
+file_toolbar = tk.Frame(toolbar_frame, bd=1, relief="raised", padx=3, pady=3)
+file_toolbar.grid(row=0, column=0, padx=(10, 0), pady=(10, 0), sticky="w")
 
-text_toolbar = tk.Frame(toolbar_frame, bd=1, relief="raised")
-text_toolbar.grid(row=0, column=1, padx=10, pady=10, sticky="w")
-
-do_toolbar = tk.Frame(toolbar_frame, bd=1, relief="raised")
-do_toolbar.grid(row=0, column=2, padx=(0, 10), pady=10, sticky="w")
+html_toolbar = tk.Frame(toolbar_frame, bd=1, relief="raised", padx=3, pady=3)
+html_toolbar.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="w")
 
 other_toolbar_frame = tk.Frame(win)
 other_toolbar_frame.grid(row=0, column=1, sticky="e")
 
-other_toolbar = tk.Frame(other_toolbar_frame, bd=1, relief="raised")
-other_toolbar.grid(row=0, column=0, padx=10, pady=10, sticky="e")
+other_toolbar = tk.Frame(other_toolbar_frame, bd=1, relief="raised", padx=3, pady=3)
+other_toolbar.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="e")
 
 new = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=new_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
-new.grid(row=0, column=0, padx=(3, 0), pady=3)
+new.grid(row=0, column=0)
 
 open_ = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=open_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
-open_.grid(row=0, column=1, pady=3)
+open_.grid(row=0, column=1)
 
 save = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=save_file, activebackground="yellow", font=("Segoe Fluent Icons", 10), state=("normal" if not filepath else "disabled"))
-save.grid(row=0, column=2, pady=3)
+save.grid(row=0, column=2)
 
-run = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe Fluent Icons", 10), activeforeground="white")
-run.grid(row=0, column=3, padx=(0, 3), pady=3)
-
-cut = tk.Button(text_toolbar, text="", width=5, pady=4, bd=0, command=lambda: text.event_generate("<<Cut>>"), font=("Segoe Fluent Icons", 10), activebackground="yellow")
-cut.grid(row=0, column=0, padx=(3, 0), pady=3)
-
-copy = tk.Button(text_toolbar, text="", width=5, pady=4, bd=0, command=lambda: text.event_generate("<<Copy>>"), activebackground="yellow", font=("Segoe Fluent Icons", 10))
-copy.grid(row=0, column=1, pady=3)
-
-paste = tk.Button(text_toolbar, text="", width=5, pady=4, bd=0, command=lambda: text.event_generate("<<Paste>>"), activebackground="yellow", font=("Segoe Fluent Icons", 10))
-paste.grid(row=0, column=2, padx=(0, 3), pady=3)
-
-undo = tk.Button(do_toolbar, text="", width=5, pady=4, bd=0, command=undo_, font=("Segoe Fluent Icons", 10), activebackground="yellow")
-undo.grid(row=0, column=0, padx=(3, 0), pady=3)
-
-redo = tk.Button(do_toolbar, text="", width=5, pady=4, bd=0, command=redo_, font=("Segoe Fluent Icons", 10), activebackground="yellow")
-redo.grid(row=0, column=1, padx=(0, 3), pady=3)
+run = tk.Button(html_toolbar, text="", width=5, pady=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe Fluent Icons", 10), activeforeground="white", fg="#0040bf")
+run.grid(row=0, column=3)
 
 about = tk.Button(other_toolbar, text="", width=5, pady=4, bd=0, command=show_about, activebackground="yellow", font=("Segoe Fluent Icons", 10))
-about.grid(row=0, column=0, padx=3, pady=3, sticky="e")
+about.grid(row=0, column=0, sticky="e")
 
 scroll = tk.Scrollbar(editor)
 scroll.pack(side="right", padx=(0, 5), pady=5, fill="y")
@@ -363,6 +361,15 @@ def update_settings(*args):
                         "Satırın Girintisini Azalt"
                         ]
                     },
+            "view":{"label": "Görünüm",
+                   "menus": [
+                        "Yazı Tipi Boyutunu Arttır",
+                        "Yazı Tipi Boyutunu Azalt",
+                        "Varsayılan Yazı Tipi Boyutunu Ayarla",
+                        "Tam Ekran",
+                        "Ekranı Kapla"
+                       ]
+                   },
             "settings":{"label": "Ayarlar",
                         "menus":[
                             "Otomatik Kaydet",
@@ -401,6 +408,15 @@ def update_settings(*args):
                         "Decrease the indent of the line"
                         ]
                     },
+            "view":{"label": "View",
+                   "menus": [
+                        "Increase the Font Size",
+                        "Decrease the Font Size",
+                        "Set the Default Font Size",
+                        "Fullscreen",
+                        "Cover the Screen"
+                       ]
+                   },
             "settings":{"label": "Settings",
                         "menus":[
                             "Auto-Save",
@@ -439,6 +455,15 @@ def update_settings(*args):
                         "Einzug Der Zeile Verringern"
                         ]
                     },
+            "view":{"label": "Ansicht",
+                   "menus": [
+                        "Schriftgröße vergrößern",
+                        "Schriftgröße verkleinern",
+                        "Standard-Schriftgröße festlegen",
+                        "Vollbild",
+                        "Bildschirm abdecken"
+                        ]
+                   },
             "settings":{"label": "Einstellungen",
                         "menus":[
                             "Automatisch Speichern",
@@ -456,11 +481,6 @@ def update_settings(*args):
     
     if language.get() == "türkçe":
         ToolTip(about, "Hakkında", shown=show_tooltip.get())
-        ToolTip(redo, "Yinele - Ctrl+Y", shown=show_tooltip.get())
-        ToolTip(undo, "Geri Al - Ctrl+Z", shown=show_tooltip.get())
-        ToolTip(paste, "Yapıştır - Ctrl+V", shown=show_tooltip.get())
-        ToolTip(copy, "Kopyala - Ctrl+C", shown=show_tooltip.get())
-        ToolTip(cut, "Kes - Ctrl+X", shown=show_tooltip.get())
         ToolTip(run, "Önizleme - Ctrl+P", shown=show_tooltip.get())
         ToolTip(save, "Kaydet - Ctrl+S", shown=show_tooltip.get())
         ToolTip(open_, "Aç - Ctrl+O", shown=show_tooltip.get())
@@ -468,11 +488,6 @@ def update_settings(*args):
         
     elif language.get() == "english":
         ToolTip(about, "About", shown=show_tooltip.get())
-        ToolTip(redo, "Redo - Ctrl+Y", shown=show_tooltip.get())
-        ToolTip(undo, "Undo - Ctrl+Z", shown=show_tooltip.get())
-        ToolTip(paste, "Paste - Ctrl+V", shown=show_tooltip.get())
-        ToolTip(copy, "Copy - Ctrl+C", shown=show_tooltip.get())
-        ToolTip(cut, "Cut - Ctrl+X", shown=show_tooltip.get())
         ToolTip(run, "Preview - Ctrl+P", shown=show_tooltip.get())
         ToolTip(save, "Save - Ctrl+S", shown=show_tooltip.get())
         ToolTip(open_, "Open - Ctrl+O", shown=show_tooltip.get())
@@ -480,11 +495,6 @@ def update_settings(*args):
         
     elif language.get() == "deutsch":
         ToolTip(about, "Über", shown=show_tooltip.get())
-        ToolTip(redo, "Wiederholen - Ctrl+Y", shown=show_tooltip.get())
-        ToolTip(undo, "Rückgängig - Ctrl+Z", shown=show_tooltip.get())
-        ToolTip(paste, "Einfügen - Ctrl+V", shown=show_tooltip.get())
-        ToolTip(copy, "Kopieren - Ctrl+C", shown=show_tooltip.get())
-        ToolTip(cut, "Schneiden - Ctrl+X", shown=show_tooltip.get())
         ToolTip(run, "Vorschau - Ctrl+P", shown=show_tooltip.get())
         ToolTip(save, "Speichern - Ctrl+S", shown=show_tooltip.get())
         ToolTip(open_, "Öffnen - Ctrl+O", shown=show_tooltip.get())
@@ -508,12 +518,19 @@ def update_settings(*args):
     edit_menu.entryconfig(8, label=menu_labels["edit"]["menus"][6])
     edit_menu.entryconfig(9, label=menu_labels["edit"]["menus"][7])
     
-    menu.entryconfig(3, label=menu_labels["settings"]["label"])
+    menu.entryconfig(3, label=menu_labels["view"]["label"])
+    view_menu.entryconfig(0, label=menu_labels["view"]["menus"][0])
+    view_menu.entryconfig(1, label=menu_labels["view"]["menus"][1])
+    view_menu.entryconfig(2, label=menu_labels["view"]["menus"][2])
+    view_menu.entryconfig(4, label=menu_labels["view"]["menus"][3])
+    view_menu.entryconfig(5, label=menu_labels["view"]["menus"][4])
+    
+    menu.entryconfig(4, label=menu_labels["settings"]["label"])
     pre_menu.entryconfig(0, label=menu_labels["settings"]["menus"][0])
     pre_menu.entryconfig(1, label=menu_labels["settings"]["menus"][1])
     pre_menu.entryconfig(2, label=menu_labels["settings"]["menus"][2])
     
-    menu.entryconfig(4, label=menu_labels["tools"]["label"])
+    menu.entryconfig(5, label=menu_labels["tools"]["label"])
     tool_menu.entryconfig(0, label=menu_labels["tools"]["menus"][0])
     tool_menu.entryconfig(1, label=menu_labels["tools"]["menus"][2])
     form_menu.entryconfig(0, label=menu_labels["tools"]["menus"][1][0])
@@ -521,6 +538,7 @@ def update_settings(*args):
     form_menu.entryconfig(2, label=menu_labels["tools"]["menus"][1][2])
     
     update_title()
+    update_status()
     
     config = {
         "show_tooltip": show_tooltip.get(),
@@ -530,10 +548,75 @@ def update_settings(*args):
         
     with open(configuration_file, "w", encoding="utf-8") as f:
         cfile = json.dump(config, f, ensure_ascii=False, indent=4)
+        
+def update_fonts():
+    global SYNTAX_COLORS
+    text.config(font=("Consolas", font_size))
+
+    for tag, style in TAG_COLORS.items():
+        color = style[0]
+        font_style = list(style[1])
+
+        font_style[1] = font_size
+
+        text.tag_configure(
+            tag,
+            foreground=color,
+            font=tuple(font_style),
+            selectforeground="#ffffff"
+        )
+        
+def increase_size():
+    global font_size
+    if font_size < 48:
+        font_size += 1
+        update_fonts()
+        highlight(text)
+
+def decrease_size():
+    global font_size
+    if font_size > 6:
+        font_size -= 1
+        update_fonts()
+        highlight(text)
+        
+def reset_size():
+    global font_size
+    font_size = 10
+    update_fonts()
+    highlight(text)
+    
+def update_view(*args):
+    if fullscreen.get():
+        win.attributes("-fullscreen", True)
+    else:
+        win.attributes("-fullscreen", False)
+        
+    if cover.get():
+        toolbar_frame.grid_forget()
+        other_toolbar_frame.grid_forget()
+        status_bar.grid_forget()
+    else:
+        toolbar_frame.grid(row=0, column=0, sticky="ew")
+        other_toolbar_frame.grid(row=0, column=1, sticky="e")
+        status_bar.grid(padx=10, pady=(0, 10), row=2, column=0, columnspan=2, sticky="ew")
+        
+def update_status():
+    global current_file
+    if language.get() == "türkçe":
+        newfile_status = "Yeni"
+    if language.get() == "english":
+        newfile_status = "New"
+    if language.get() == "deutsch":
+        newfile_status = "Neu"
+    
+    status_bar.config(text=f"{os.path.basename(current_file) if current_file else newfile_status} | {text.index('insert')}")
 
 show_tooltip.trace_add("write", update_settings)
 language.trace_add("write", update_settings)
 auto_save.trace_add("write", update_settings)
+fullscreen.trace_add("write", update_view)
+cover.trace_add("write", update_view)
 
 text.bind("<Shift-Tab>", unindent)
 text.bind("<Tab>", indent)
@@ -544,6 +627,9 @@ win.bind("<Control-o>", lambda e: open_file())
 win.bind("<Control-n>", lambda e: new_file())
 win.bind("<Control-z>", lambda e: undo_())
 win.bind("<Control-y>", lambda e: redo_())
+win.bind("<Control-plus>", lambda e: increase_size())
+win.bind("<Control-minus>", lambda e: decrease_size())
+win.bind("<Control-Shift-R>", lambda e: reset_size())
 win.bind("<Control-Shift-N>", lambda e: subprocess.Popen([sys.executable, __file__]))
 win.bind("<Control-p>", lambda e: run_())
 
@@ -573,6 +659,15 @@ edit_menu.add_separator()
 edit_menu.add_command(label="", command=indent, accelerator="Tab")
 edit_menu.add_command(label="", command=unindent, accelerator="Shift+Tab")
 menu.add_cascade(menu=edit_menu, label="")
+
+view_menu = tk.Menu(menu, tearoff=0)
+view_menu.add_command(label="", command=increase_size, accelerator="Ctrl++")
+view_menu.add_command(label="", command=increase_size, accelerator="Ctrl+-")
+view_menu.add_command(label="", command=reset_size, accelerator="Ctrl+Shift+R")
+view_menu.add_separator()
+view_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=fullscreen)
+view_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=cover)
+menu.add_cascade(menu=view_menu, label="")
 
 pre_menu = tk.Menu(menu, tearoff=0)
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=auto_save)
@@ -627,5 +722,7 @@ update_settings()
 text.bind('<Button-3>', lambda event: edit_menu.tk_popup(event.x_root, event.y_root))
 text.bind("<KeyRelease>", lambda event: highlight(text))
 text.bind("<KeyRelease>", autosv, add='+')
+text.bind("<KeyRelease>", lambda e: update_status(), add='+')
+text.bind("<Button-1>", lambda e: update_status())
 win.protocol("WM_DELETE_WINDOW", save_on_exit)                    
 win.mainloop()

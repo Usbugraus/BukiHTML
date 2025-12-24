@@ -2,17 +2,16 @@ import tkinter as tk
 import re
 
 TAG_COLORS = {
-    "tag": "#0000bf",
-    "attribute": "#bf0000",
-    "value": "#00bf00",
-    "comment": "#808080",
+    "tag": ["#0000bf", ("Consolas", 10)],
+    "attribute": ["#bf0000", ("Consolas", 10)],
+    "value": ["#00bf00", ("Consolas", 10)],
+    "comment": ["#808080", ("Consolas", 10, "italic")],
 }
 
 def highlighter(widget):
     content = widget.get("1.0", "end-1c")
 
-    for tag, color in TAG_COLORS.items():
-        widget.tag_config(tag, foreground=color)
+    for tag, style in TAG_COLORS.items():
         widget.tag_remove(tag, "1.0", "end")
 
     for m in re.finditer(r"<!--.*?-->", content, re.S):
