@@ -7,11 +7,13 @@ import ctypes
 import os, sys
 import webbrowser
 import json, traceback
+from collections import defaultdict
 from ToolTip import ToolTip
 from ToolWindow import toolwindow
 from MarkdownToHTML import md2html_dialog
 from SyntaxHighlighter import highlighter
 from ErrorHandler import error_handler
+from AutoCompleter import AutoCompleter
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -31,6 +33,37 @@ TAG_COLORS = {
     "value": ["#00bf00", ("Consolas", font_size)],
     "comment": ["#808080", ("Consolas", 10, "italic")],
 }
+names = [
+    "<html>", "<head>", "<title>", "<base>", "<link>", "<meta>", "<style>",
+    "<body>",
+    "<article>", "<section>", "<nav>", "<aside>",
+    "<h1>", "<h2>", "<h3>", "<h4>", "<h5>", "<h6>",
+    "<header>", "<footer>", "<address>", "<main>",
+    "<p>", "<hr>", "<pre>", "<blockquote>",
+    "<ol>", "<ul>", "<li>", "<dl>", "<dt>", "<dd>",
+    "<figure>", "<figcaption>", "<div>",
+    "<a>", "<em>", "<strong>", "<small>", "<s>", "<cite>", "<q>",
+    "<dfn>", "<abbr>", "<data>", "<time>", "<code>", "<var>",
+    "<samp>", "<kbd>", "<sub>", "<sup>", "<i>", "<b>", "<u>",
+    "<mark>", "<ruby>", "<rt>", "<rp>", "<bdi>", "<bdo>",
+    "<span>", "<br>", "<wbr>",
+    "<ins>", "<del>",
+    "<img>", "<iframe>", "<embed>", "<object>", "<param>",
+    "<video>", "<audio>", "<source>", "<track>",
+    "<canvas>", "<map>", "<area>",
+    "<svg>", "<math>",
+    "<table>", "<caption>", "<colgroup>", "<col>",
+    "<tbody>", "<thead>", "<tfoot>",
+    "<tr>", "<td>", "<th>",
+    "<form>", "<label>", "<input>", "<button>",
+    "<select>", "<datalist>", "<optgroup>", "<option>",
+    "<textarea>", "<output>", "<progress>", "<meter>",
+    "<fieldset>", "<legend>",
+    "<details>", "<summary>", "<dialog>",
+    "<script>", "<noscript>", "<template>", "<slot>",
+    "<picture>"
+]
+
 
 win = tk.Tk()
 win.geometry("800x600")
@@ -69,6 +102,13 @@ editor.grid(padx=10, pady=10, row=1, column=0, columnspan=2, sticky="nsew")
 
 status_bar = tk.Label(win, bd=1, relief="raised", text="", padx=5, pady=5, anchor="w")
 status_bar.grid(padx=10, pady=(0, 10), row=2, column=0, columnspan=2, sticky="ew")
+
+line_numbers = tk.Canvas(
+    editor,
+    width=45,
+    background="#f0f0f0",
+    highlightthickness=0
+)
 
 text = tk.Text(editor, wrap="none", width=60, height=20, font=("Consolas", 10), bd=1, undo=True, padx=5, pady=5)
 
@@ -148,6 +188,7 @@ def open_file():
         update()
         highlight(text)
         save.config(state="disabled")
+        text.edit_reset()
         update_status()
 
 def new_file():
@@ -177,6 +218,7 @@ def new_file():
     text.config(xscrollcommand=scroll_h.set, yscrollcommand=scroll.set)
     save.config(state="disabled")
     update_status()
+    text.edit_reset()
     win.update_idletasks()
 
 def update_title():
@@ -243,16 +285,54 @@ def run_():
         
 def show_about():
     if language.get() == "türkçe":
-        messagebox.showinfo("Hakkında", "BukiHTML v1.2.0\n© Telif Hakkı 2025 Buğra US")
+        messagebox.showinfo("Hakkında", "BukiHTML v1.2.5\n© Telif Hakkı 2025-2026 Buğra US")
     elif language.get() == "english":
-        messagebox.showinfo("About", "BukiHTML v1.2.0\n© Copyright 2025 Buğra US")
+        messagebox.showinfo("About", "BukiHTML v1.2.5\n© Copyright 2025-2026 Buğra US")
     elif language.get() == "deutsch":
-        messagebox.showinfo("Über", "BukiHTML v1.2.0\n© Urheberrecht 2025 Buğra US")
+        messagebox.showinfo("Über", "BukiHTML v1.2.5\n© Urheberrecht 2025-2026 Buğra US")
     
 def autosv(event):
     global current_file
     if current_file and auto_save.get():
         save_file()
+        
+def redraw_line_numbers(event=None):
+    line_numbers.delete("all")
+
+    i = text.index("@0,0")
+    while True:
+        dline = text.dlineinfo(i)
+        if dline is None:
+            break
+
+        y = dline[1]
+        line_number = str(i).split(".")[0]
+        line_numbers.create_text(
+            40, y,
+            anchor="ne",
+            text=line_number,
+            font=("Consolas", 10)
+        )
+
+        i = text.index(f"{i}+1line")
+        
+    text.edit_modified(False)
+        
+def on_text_scroll(*args):
+    scroll.set(*args)
+    redraw_line_numbers()
+
+def on_scrollbar(*args):
+    text.yview(*args)
+    redraw_line_numbers()
+    
+def toggle_fullscreen(event=None):
+    fullscreen.set(not fullscreen.get())
+    win.attributes("-fullscreen", fullscreen.get())
+
+def exit_fullscreen(event=None):
+    fullscreen.set(False)
+    win.attributes("-fullscreen", False)
 
 if hasattr(sys, "_MEIPASS"):
     icon_path = os.path.join(sys._MEIPASS, "Icon.ico")
@@ -294,14 +374,18 @@ about.grid(row=0, column=0, sticky="e")
 
 scroll = tk.Scrollbar(editor)
 scroll.pack(side="right", padx=(0, 5), pady=5, fill="y")
-scroll.config(command=text.yview)
+scroll.config(command=on_scrollbar)
 
 scroll_h = tk.Scrollbar(editor, orient="horizontal")
 scroll_h.pack(side="bottom", padx=(5, 0), pady=(0, 5), fill="x")
 scroll_h.config(command=text.xview)
-text.config(xscrollcommand=scroll_h.set, yscrollcommand=scroll.set)
+text.config(
+    xscrollcommand=scroll_h.set,
+    yscrollcommand=on_text_scroll
+)
 
-text.pack(fill="both", padx=(5, 0), pady=(5, 0), expand=True)
+line_numbers.pack(side="left", fill="y", padx=(5, 0), pady=5)
+text.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=(5, 0))
 
 def indent(event=None):
     try:
@@ -379,7 +463,7 @@ def update_settings(*args):
                         },
             "tools": {"label": "Araçlar",
                       "menus": [
-                          "HTML Formları", ["Başlıklar", "Metin", "Diğer"], 
+                          "HTML Formları", 
                           "Markdown'dan HTML'e",
                           ]
                       }
@@ -426,7 +510,7 @@ def update_settings(*args):
                         },
             "tools": {"label": "Tools",
                       "menus": [
-                          "HTML Forms", ["Headers", "Text", "Other"], 
+                          "HTML Forms", 
                           "Markdown to HTML",
                           ]
                       }
@@ -473,7 +557,7 @@ def update_settings(*args):
                         },
             "tools": {"label": "Werkzeuge",
                       "menus": [
-                          "HTML-Formulare", ["Titel", "Text", "Andere"], 
+                          "HTML-Formulare", 
                           "Von Markdown zu HTML",
                           ]
                       }
@@ -532,10 +616,7 @@ def update_settings(*args):
     
     menu.entryconfig(5, label=menu_labels["tools"]["label"])
     tool_menu.entryconfig(0, label=menu_labels["tools"]["menus"][0])
-    tool_menu.entryconfig(1, label=menu_labels["tools"]["menus"][2])
-    form_menu.entryconfig(0, label=menu_labels["tools"]["menus"][1][0])
-    form_menu.entryconfig(1, label=menu_labels["tools"]["menus"][1][1])
-    form_menu.entryconfig(2, label=menu_labels["tools"]["menus"][1][2])
+    tool_menu.entryconfig(1, label=menu_labels["tools"]["menus"][1])
     
     update_title()
     update_status()
@@ -609,9 +690,22 @@ def update_status():
         newfile_status = "New"
     if language.get() == "deutsch":
         newfile_status = "Neu"
+        
+    def get_cursor_position():
+        index = text.index(tk.INSERT)
+        line, col = index.split(".")
+        return int(line), int(col) + 1
     
-    status_bar.config(text=f"{os.path.basename(current_file) if current_file else newfile_status} | {text.index('insert')}")
+    line, col = get_cursor_position()
+    filename = os.path.basename(current_file) if current_file else newfile_status
 
+    status_bar.config(
+        text=f"{filename} | {line} : {col}"
+    )
+    
+def update_status_idle(event=None):
+    win.after_idle(update_status)
+    
 show_tooltip.trace_add("write", update_settings)
 language.trace_add("write", update_settings)
 auto_save.trace_add("write", update_settings)
@@ -632,6 +726,8 @@ win.bind("<Control-minus>", lambda e: decrease_size())
 win.bind("<Control-Shift-R>", lambda e: reset_size())
 win.bind("<Control-Shift-N>", lambda e: subprocess.Popen([sys.executable, __file__]))
 win.bind("<Control-p>", lambda e: run_())
+win.bind("<F11>", toggle_fullscreen)
+win.bind("<Escape>", exit_fullscreen)
 
 menu = tk.Menu(win)
 win.config(menu=menu)
@@ -665,7 +761,7 @@ view_menu.add_command(label="", command=increase_size, accelerator="Ctrl++")
 view_menu.add_command(label="", command=increase_size, accelerator="Ctrl+-")
 view_menu.add_command(label="", command=reset_size, accelerator="Ctrl+Shift+R")
 view_menu.add_separator()
-view_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=fullscreen)
+view_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=fullscreen, accelerator="F11")
 view_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=cover)
 menu.add_cascade(menu=view_menu, label="")
 
@@ -682,37 +778,22 @@ menu.add_cascade(menu=pre_menu, label="")
 tool_menu = tk.Menu(menu, tearoff=0)
 form_menu = tk.Menu(tool_menu, tearoff=0)
 
-title_menu = tk.Menu(form_menu, tearoff=0)
-title_menu.add_command(label="<h1>", command=lambda: [text.insert(tk.INSERT, """<h1></h1>"""), highlight(text)])
-title_menu.add_command(label="<h2>", command=lambda: [text.insert(tk.INSERT, """<h2></h2>"""), highlight(text)])
-title_menu.add_command(label="<h3>", command=lambda: [text.insert(tk.INSERT, """<h3></h3>"""), highlight(text)])
-title_menu.add_command(label="<h4>", command=lambda: [text.insert(tk.INSERT, """<h4></h4>"""), highlight(text)])
-title_menu.add_command(label="<h5>", command=lambda: [text.insert(tk.INSERT, """<h5></h5>"""), highlight(text)])
-title_menu.add_command(label="<h6>", command=lambda: [text.insert(tk.INSERT, """<h6></h6>"""), highlight(text)])
-form_menu.add_cascade(menu=title_menu, label="")
+def insert_tag(tag):
+    text.insert(tk.INSERT, tag)
+    highlight(text)
 
-text_menu = tk.Menu(form_menu, tearoff=0)
-text_menu.add_command(label="<p>", command=lambda: [text.insert(tk.INSERT, """<p></p>"""), highlight(text)])
-text_menu.add_command(label="<b>", command=lambda: [text.insert(tk.INSERT, """<b></b>"""), highlight(text)])
-text_menu.add_command(label="<i>", command=lambda: [text.insert(tk.INSERT, """<i></i>"""), highlight(text)])
-text_menu.add_command(label="<u>", command=lambda: [text.insert(tk.INSERT, """<u></u>"""), highlight(text)])
-text_menu.add_command(label="<mark>", command=lambda: [text.insert(tk.INSERT, """<mark></mark>"""), highlight(text)])
-text_menu.add_command(label="<sub>", command=lambda: [text.insert(tk.INSERT, """<sub></sub>"""), highlight(text)])
-text_menu.add_command(label="<sup>", command=lambda: [text.insert(tk.INSERT, """<sup></sup>"""), highlight(text)])
-form_menu.add_cascade(menu=text_menu, label="")
 
-other_menu = tk.Menu(form_menu, tearoff=0)
-other_menu.add_command(label="<span>", command=lambda: [text.insert(tk.INSERT, """<span></span>"""), highlight(text)])
-other_menu.add_command(label="<div>", command=lambda: [text.insert(tk.INSERT, """<div></div>"""), highlight(text)])
-other_menu.add_command(label="<br>", command=lambda: [text.insert(tk.INSERT, """<br>"""), highlight(text)])
-other_menu.add_command(label="<hr>", command=lambda: [text.insert(tk.INSERT, """<hr>"""), highlight(text)])
-other_menu.add_command(label="<pre>", command=lambda: [text.insert(tk.INSERT, """<pre></pre>"""), highlight(text)])
-other_menu.add_command(label="<code>", command=lambda: [text.insert(tk.INSERT, """<code></code>"""), highlight(text)])
-other_menu.add_command(label="<blockquote>", command=lambda: [text.insert(tk.INSERT, """<blockquote cite=""></blockquote>"""), highlight(text)])
-other_menu.add_command(label="<q>", command=lambda: [text.insert(tk.INSERT, """<q cite=""></q>"""), highlight(text)])
-other_menu.add_command(label="<link>", command=lambda: [text.insert(tk.INSERT, """<a href=""></a>"""), highlight(text)])
-form_menu.add_cascade(menu=other_menu, label="")
+groups = defaultdict(list)
+for tg in names:
+    clean_tag = tg.strip("<>").lower()
+    first_letter = clean_tag[0]
+    groups[first_letter].append(tg)
 
+for letter, tags in sorted(groups.items()):
+    submenu = tk.Menu(form_menu, tearoff=0)
+    for tg in tags:
+        submenu.add_command(label=tg, command=lambda tg=tg: insert_tag(tg))
+    form_menu.add_cascade(label=letter.upper(), menu=submenu)
 tool_menu.add_cascade(menu=form_menu, label="")
 tool_menu.add_command(label="", command=lambda: md2html_dialog(win, language=language.get()))
 menu.add_cascade(menu=tool_menu, label="")
@@ -723,6 +804,16 @@ text.bind('<Button-3>', lambda event: edit_menu.tk_popup(event.x_root, event.y_r
 text.bind("<KeyRelease>", lambda event: highlight(text))
 text.bind("<KeyRelease>", autosv, add='+')
 text.bind("<KeyRelease>", lambda e: update_status(), add='+')
-text.bind("<Button-1>", lambda e: update_status())
-win.protocol("WM_DELETE_WINDOW", save_on_exit)                    
+text.bind("<ButtonRelease-1>", update_status_idle)
+win.protocol("WM_DELETE_WINDOW", save_on_exit)
+text.bind("<<Modified>>", redraw_line_numbers, add="+")
+text.bind("<MouseWheel>", redraw_line_numbers)
+text.bind("<Button-4>", redraw_line_numbers)
+text.bind("<Button-5>", redraw_line_numbers)
+text.bind("<Configure>", redraw_line_numbers)
+
+redraw_line_numbers()
+
+AutoCompleter(text, names)
+
 win.mainloop()
