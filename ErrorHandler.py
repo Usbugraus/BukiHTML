@@ -5,7 +5,16 @@ from ToolWindow import toolwindow
 def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe"):
     tb_text = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
     errorwin = tk.Toplevel(parent)
-    errorwin.title("Hata")
+    
+    if language == "türkçe":
+        errorwin.title("Hata")
+    elif language == "english":
+        errorwin.title("Error")
+    elif language == "deutsch":
+        errorwin.title("Fehler")
+    elif language == "русский":
+        errorwin.title("Ошибка")
+        
     errorwin.resizable(False, False)
     errorwin.transient(parent)
     errorwin.lift()
@@ -22,6 +31,8 @@ def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe
         tk.Label(frame, text="An error occured: ").pack(anchor="nw", padx=5, pady=(5, 0))
     elif language == "deutsch":
         tk.Label(frame, text="Ein Fehler ist aufgetreten: ").pack(anchor="nw", padx=5, pady=(5, 0))
+    elif language == "русский":
+        tk.Label(frame, text="Произошла ошибка: ").pack(anchor="nw", padx=5, pady=(5, 0))
     
     error = tk.Text(frame, bd=1, font=("Consolas", 10), width=50, height=20, wrap="none", padx=5, pady=5)
     error.insert(1.0, traceback.format_exc())
@@ -48,10 +59,10 @@ def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe
          error.clipboard_append(error_content)
          cp.config(state="disabled")
     
-    ok = tk.Button(frame2, text="", bd=1, command=lambda: errorwin.destroy(), width=30)
-    ok.pack(padx=5, pady=5, side="right")
-    cp = tk.Button(frame2, text="", bd=1, command=copy_error, width=30)
-    cp.pack(padx=(5, 0), pady=5, side="left")
+    ok = tk.Button(frame2, text="", bd=0, command=lambda: errorwin.destroy(), width=30, activebackground="#ffff00")
+    ok.pack(padx=3, pady=3, side="right")
+    cp = tk.Button(frame2, text="", bd=0, command=copy_error, width=30, activebackground="#ffff00")
+    cp.pack(padx=(3, 0), pady=3, side="left")
     
     if language == "türkçe":
         ok.config(text="Tamam")
@@ -62,3 +73,6 @@ def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe
     elif language == "deutsch":
         ok.config(text="Okay")
         cp.config(text="Kopieren")
+    elif language == "русский":
+        ok.config(text="Окей")
+        cp.config(text="Копировать")

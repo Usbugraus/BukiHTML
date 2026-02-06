@@ -11,6 +11,13 @@ except Exception:
         ctypes.windll.user32.SetProcessDPIAware()
     except:
         pass
+    
+TAG_COLORS = {
+    "tag": ["#0000bf", ("Consolas", 10)],
+    "attribute": ["#bf0000", ("Consolas", 10)],
+    "value": ["#00bf00", ("Consolas", 10)],
+    "comment": ["#808080", ("Consolas", 10, "italic")],
+}
 
 def md_to_html(md_text=""):
     html = markdown.markdown(
@@ -37,6 +44,7 @@ def md_to_html(md_text=""):
     return html
 
 def md2html_dialog(parent, language="türkçe"):
+    global TAG_COLORS
     w = tk.Toplevel(parent)
     w.resizable(False, False)
     w.lift()
@@ -81,7 +89,17 @@ def md2html_dialog(parent, language="türkçe"):
     toolbar = tk.Frame(html_frame, bd=1, relief="raised", padx=3, pady=3)
     toolbar.pack(pady=(0, 5), anchor="w")
     
-    html_text = tk.Text(html_frame, bd=1, padx=5, pady=5, font=("Consolas", 10), width=70, height=15, wrap="none", state="disabled")
+    html_text = tk.Text(html_frame, bd=1, padx=5, pady=5, font=("Consolas", 10), width=70, height=15, wrap="none")
+    
+    for tag, style in TAG_COLORS.items():
+        html_text.tag_config(
+            tag,
+            foreground=style[0],
+            selectforeground="white",
+            font=style[1]
+        )
+        
+    html_text.config(state="disabled")
     
     def copy_html():
         html = html_text.get("1.0", "end-1c")
@@ -114,11 +132,10 @@ def md2html_dialog(parent, language="türkçe"):
         html_text.delete("1.0", tk.END)
         html_text.insert("1.0", html)
 
-        def do_highlight():
-            highlighter(html_text)
-            html_text.config(state="disabled")
+        highlighter(html_text)
 
-        html_text.after(1, do_highlight)
+        html_text.config(state="disabled")
+
         md_text.edit_modified(False)
     
     md_text.bind("<<Modified>>", update)
