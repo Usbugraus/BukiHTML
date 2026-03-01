@@ -68,7 +68,8 @@ def md2html_dialog(parent, language="türkçe"):
         w.title("Markdown to HTML")
     elif language == "deutsch":
         w.title("Von Markdown zu HTML")
-        
+    elif language == "русский":
+        w.title("Из Markdown в HTML")
         
     md_frame = tk.LabelFrame(w, text="Markdown", bd=1, relief="raised", padx=5, pady=5)
     md_frame.pack(padx=10, pady=(10, 0))

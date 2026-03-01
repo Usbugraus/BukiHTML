@@ -21,8 +21,8 @@ class AutoCompleter:
         self.text.bind("<Down>", self._down)
         self.text.bind("<Up>", self._up)
         self.text.bind("<Tab>", self._complete_if_popup, add="+")
-        self.text.bind("<Escape>", self._hide)
-        
+        self.text.bind("<FocusOut>", self._hide, add="+")
+
     def _complete_if_popup(self, event):
         if self.popup:
             return self._complete(event)
@@ -95,10 +95,18 @@ class AutoCompleter:
     def _show(self, matches):
         if not self.popup:
             self.popup = tk.Toplevel(self.text, bd=1, relief="raised")
+            self.popup.transient(self.text.winfo_toplevel())
             self.popup.overrideredirect(True)
-            self.popup.attributes("-topmost", True)
+            self.popup.lift(self.text.winfo_toplevel())
 
-            self.listbox = tk.Listbox(self.popup, height=10, width=20, font=("Consolas", 10), bd=1)
+            self.listbox = tk.Listbox(
+                self.popup,
+                height=10,
+                width=20,
+                font=("Consolas", 10),
+                bd=1,
+                highlightthickness=0
+            )
             self.listbox.pack(padx=5, pady=5)
             self.listbox.bind("<Double-Button-1>", self._mouse_select)
 
@@ -108,7 +116,11 @@ class AutoCompleter:
 
         self.listbox.selection_set(0)
 
-        x, y, w, h = self.text.bbox("insert")
+        bbox = self.text.bbox("insert")
+        if not bbox:
+            return
+
+        x, y, w, h = bbox
         x += self.text.winfo_rootx()
         y += self.text.winfo_rooty() + h
 
@@ -128,8 +140,19 @@ class AutoCompleter:
         self._hide()
 
     def _hide(self, event=None):
-        if self.popup:
-            self.popup.destroy()
-            self.popup = None
-            self.listbox = None
+        if not self.popup:
+            return
+
+        current_focus = self.text.focus_get()
+
+        if current_focus and str(current_focus).startswith(str(self.popup)):
+            return
+
+        self.popup.destroy()
+        self.popup = None
+        self.listbox = None
+            
+    def _check_focus(self):
+        if not self.text.focus_get():
+            self._hide()
 

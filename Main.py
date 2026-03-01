@@ -66,8 +66,8 @@ names = [
 
 
 win = tk.Tk()
-win.geometry("800x600")
-win.minsize(700, 500)
+win.geometry("600x500")
+win.minsize(500, 400)
 win.grid_rowconfigure(1, weight=1)
 win.grid_columnconfigure(0, weight=1)
 win.grid_columnconfigure(1, weight=1)
@@ -83,6 +83,7 @@ if os.path.exists(configuration_file):
     with open(configuration_file, "r", encoding="utf-8") as f:
         configuration = json.load(f)
 else:
+    messagebox.showwarning("Warning", "The configuration file has been moved to another location or deleted. Therefore, the settings have been reset.")
     configuration = {
         "show_tooltip": True,
         "language": "english",
@@ -307,13 +308,13 @@ def run_():
         
 def show_about():
     if language.get() == "türkçe":
-        messagebox.showinfo("Hakkında", "BukiHTML v1.0.0\n© Telif Hakkı 2025-2026 Buğra US")
+        messagebox.showinfo("Hakkında", "BukiHTML v1.0.5\n© telif Hakkı 2025-2026 Buğra US")
     elif language.get() == "english":
-        messagebox.showinfo("About", "BukiHTML v1.0.0\n© Copyright 2025-2026 Buğra US")
+        messagebox.showinfo("About", "BukiHTML v1.0.5\n© copyright 2025-2026 Buğra US")
     elif language.get() == "deutsch":
-        messagebox.showinfo("Über", "BukiHTML v1.0.0\n© Urheberrecht 2025-2026 Buğra US")
+        messagebox.showinfo("Über", "BukiHTML v1.0.5\n© urheberrecht 2025-2026 Buğra US")
     elif language.get() == "русский":
-        messagebox.showinfo("О программе", "BukiHTML v1.0.0\n© Авторские права 2025-2026 Buğra US")
+        messagebox.showinfo("О программе", "BukiHTML v1.0.5\n© aвторские права 2025-2026 Buğra US")
     
 def autosv(event):
     global current_file
