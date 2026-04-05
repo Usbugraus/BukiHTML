@@ -26,7 +26,10 @@ except Exception:
 changed = False
 current_file = None
 filepath = None
-font_size = 10
+font_size = 9
+configuration_file = "Configuration.json"
+language_directory = os.path.join(os.path.dirname(__file__), "Language")
+menu_labels = {}
 TAG_COLORS = {
     "tag": ["#0000bf", ("Consolas", font_size)],
     "attribute": ["#bf0000", ("Consolas", font_size)],
@@ -66,7 +69,6 @@ names = [
 
 
 win = tk.Tk()
-win.geometry("600x500")
 win.minsize(500, 400)
 win.grid_rowconfigure(1, weight=1)
 win.grid_columnconfigure(0, weight=1)
@@ -77,11 +79,27 @@ def report_callback_exception(exc_type, exc_value, exc_traceback):
 
 win.report_callback_exception = report_callback_exception
 
-configuration_file = "Configuration.json"
+with open(os.path.join(language_directory, "MenuLabels.json"), "r", encoding="utf-8") as f:
+    menu_labels_dict = json.load(f)
+    
+with open(os.path.join(language_directory, "ToolTipLabels.json"), "r", encoding="utf-8") as f:
+    tooltip_dict = json.load(f)
 
 if os.path.exists(configuration_file):
-    with open(configuration_file, "r", encoding="utf-8") as f:
-        configuration = json.load(f)
+    try:
+        with open(configuration_file, "r", encoding="utf-8") as f:
+            configuration = json.load(f)
+    except:
+        messagebox.showwarning("Warning", "The configuration file is corrupt. Therefore, the settings have been reset.")
+        configuration = {
+            "show_tooltip": True,
+            "language": "english",
+            "auto_save": False,
+            "highlighting": True,
+            "line_numbers": True,
+            "window_size": "800x600",
+            "window_state": "normal"
+        }
 else:
     messagebox.showwarning("Warning", "The configuration file has been moved to another location or deleted. Therefore, the settings have been reset.")
     configuration = {
@@ -89,8 +107,18 @@ else:
         "language": "english",
         "auto_save": False,
         "highlighting": True,
-        "line_numbers": True
-        }
+        "line_numbers": True,
+        "window_size": "800x600",
+        "window_state": "normal"
+    }
+    
+win.geometry(configuration.get("window_size", "800x600"))
+state = configuration.get("window_state", "normal")
+
+if state == "zoomed":
+    win.state("zoomed")
+elif state == "iconic":
+    win.iconify()
           
 show_tooltip = tk.BooleanVar(value=configuration["show_tooltip"])
 language = tk.StringVar(value=configuration["language"])
@@ -100,22 +128,15 @@ cover = tk.BooleanVar(value=False)
 hghlgtning = tk.BooleanVar(value=configuration["highlighting"])
 lnnumbers = tk.BooleanVar(value=configuration["line_numbers"])
 
-menu_labels = {}
-
 editor = tk.Frame(win, bd=1, relief="raised", width=800, height=600)
 editor.grid(padx=10, pady=10, row=1, column=0, columnspan=2, sticky="nsew")
 
 status_bar = tk.Label(win, bd=1, relief="raised", text="", padx=5, pady=5, anchor="w")
 status_bar.grid(padx=10, pady=(0, 10), row=2, column=0, columnspan=2, sticky="ew")
 
-line_numbers = tk.Canvas(
-    editor,
-    width=45,
-    background="#f0f0f0",
-    highlightthickness=0
-)
+line_numbers = tk.Canvas(editor, width=45, background="#f0f0f0", highlightthickness=0)
 
-text = tk.Text(editor, wrap="none", width=60, height=20, font=("Consolas", 10), bd=1, undo=True, padx=5, pady=5)
+text = tk.Text(editor, wrap="none", width=60, height=20, font=("Consolas", font_size), bd=1, undo=True, padx=5, pady=5)
 
 for tag, style in TAG_COLORS.items():
     text.tag_config(
@@ -194,6 +215,7 @@ def open_file():
     if filepath:
         with open(filepath, 'r', encoding='utf-8') as file:
             opened_file = file.read()
+            
         text.delete(1.0, tk.END)
         text.insert(1.0, opened_file)
         current_file = filepath
@@ -256,6 +278,14 @@ def update_title():
         
 def save_on_exit():
     global changed
+
+    win.update_idletasks()
+    configuration["window_size"] = f"{win.winfo_width()}x{win.winfo_height()}"
+    configuration["window_state"] = str(win.state())
+
+    with open(configuration_file, "w", encoding="utf-8") as f:
+        json.dump(configuration, f, ensure_ascii=False, indent=4)
+
     if changed:
         if language.get() == "türkçe":
             confirm = messagebox.askyesnocancel("Kaydet", "Bu belgeyi kaydetmek istiyor musunuz?")
@@ -265,11 +295,11 @@ def save_on_exit():
             confirm = messagebox.askyesnocancel("Speichern", "Möchten Sie dieses Dokument speichern?")
         elif language.get() == "русский":
             confirm = messagebox.askyesnocancel("Speichern", "Вы хотите сохранить этот документ?")
-            
+
         if confirm:
             save_file()
             win.destroy()
-        if confirm == False: 
+        elif confirm == False:
             win.destroy()
     else:
         win.destroy()
@@ -308,13 +338,13 @@ def run_():
         
 def show_about():
     if language.get() == "türkçe":
-        messagebox.showinfo("Hakkında", "BukiHTML v1.0.5\n© telif Hakkı 2025-2026 Buğra US")
+        messagebox.showinfo("Hakkında", "BukiHTML v1.1.0\n© telif Hakkı 2025-2026 Buğra US")
     elif language.get() == "english":
-        messagebox.showinfo("About", "BukiHTML v1.0.5\n© copyright 2025-2026 Buğra US")
+        messagebox.showinfo("About", "BukiHTML v1.1.0\n© copyright 2025-2026 Buğra US")
     elif language.get() == "deutsch":
-        messagebox.showinfo("Über", "BukiHTML v1.0.5\n© urheberrecht 2025-2026 Buğra US")
+        messagebox.showinfo("Über", "BukiHTML v1.1.0\n© urheberrecht 2025-2026 Buğra US")
     elif language.get() == "русский":
-        messagebox.showinfo("О программе", "BukiHTML v1.0.5\n© aвторские права 2025-2026 Buğra US")
+        messagebox.showinfo("О программе", "BukiHTML v1.1.0\n© aвторские права 2025-2026 Buğra US")
     
 def autosv(event):
     global current_file
@@ -322,6 +352,7 @@ def autosv(event):
         save_file()
         
 def redraw_line_numbers(event=None):
+    global font_size
     line_numbers.delete("all")
 
     i = text.index("@0,0")
@@ -336,7 +367,7 @@ def redraw_line_numbers(event=None):
             40, y,
             anchor="ne",
             text=line_number,
-            font=("Consolas", 10)
+            font=("Consolas", font_size)
         )
 
         i = text.index(f"{i}+1line")
@@ -382,19 +413,19 @@ other_toolbar_frame.grid(row=0, column=1, sticky="e")
 other_toolbar = tk.Frame(other_toolbar_frame, bd=1, relief="raised", padx=3, pady=3)
 other_toolbar.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="e")
 
-new = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=new_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
+new = tk.Button(file_toolbar, text="\uE130", width=5, pady=4, bd=0, command=new_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 new.grid(row=0, column=0)
 
-open_ = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=open_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
+open_ = tk.Button(file_toolbar, text="\uE197", width=5, pady=4, bd=0, command=open_file, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 open_.grid(row=0, column=1)
 
-save = tk.Button(file_toolbar, text="", width=5, pady=4, bd=0, command=save_file, activebackground="yellow", font=("Segoe Fluent Icons", 10), state=("normal" if not filepath else "disabled"))
+save = tk.Button(file_toolbar, text="\uE105", width=5, pady=4, bd=0, command=save_file, activebackground="yellow", font=("Segoe Fluent Icons", 10), state=("normal" if not filepath else "disabled"))
 save.grid(row=0, column=2)
 
-run = tk.Button(html_toolbar, text="", width=5, pady=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe Fluent Icons", 10), activeforeground="white", fg="#0040bf")
+run = tk.Button(html_toolbar, text="\uE163", width=5, pady=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe Fluent Icons", 10), activeforeground="white", fg="#0040bf")
 run.grid(row=0, column=3)
 
-about = tk.Button(other_toolbar, text="", width=5, pady=4, bd=0, command=show_about, activebackground="yellow", font=("Segoe Fluent Icons", 10))
+about = tk.Button(other_toolbar, text="\uE712", width=5, pady=4, bd=0, command=show_about, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 about.grid(row=0, column=0, sticky="e")
 
 scroll = tk.Scrollbar(editor)
@@ -445,235 +476,25 @@ def unindent(event=None):
     return "break" 
 
 def update_settings(*args):
-    global menu_labels, configuration_file
+    global menu_labels, configuration_file, tooltip_labels
     if language.get() == "türkçe":
-        menu_labels = {
-            "file":{"label": "Dosya",
-                    "menus":[
-                        "Yeni",
-                        "Yeni Pencere",
-                        "Aç",
-                        "Kaydet",
-                        "Farklı Kaydet",
-                        "Çık"
-                        ]
-                    },
-            "edit":{"label": "Düzen",
-                    "menus":[
-                        "Geri Al",
-                        "Yinele",
-                        "Kes",
-                        "Kopyala",
-                        "Yapıştır",
-                        "Tümünü Seç",
-                        "Satırı Girintile",
-                        "Satırın Girintisini Azalt",
-                        "Girintile ve Yeni Satıra Geç"
-                        ]
-                    },
-            "view":{"label": "Görünüm",
-                   "menus": [
-                        "Yazı Tipi Boyutunu Arttır",
-                        "Yazı Tipi Boyutunu Azalt",
-                        "Varsayılan Yazı Tipi Boyutunu Ayarla",
-                        "Tam Ekran",
-                        "Ekranı Kapla"
-                       ]
-                   },
-            "settings":{"label": "Ayarlar",
-                        "menus":[
-                            "Otomatik Kaydet",
-                            "Araç İpuçlarını Göster",
-                            "Sözdizimi Renklendirme",
-                            "Satır Numaraları",
-                            "Dil"
-                            ]
-                        },
-            "tools": {"label": "Araçlar",
-                      "menus": [
-                          "HTML Formları", 
-                          "Markdown'dan HTML'e",
-                          ]
-                      }
-            }
+        menu_labels = menu_labels_dict["türkçe"]
+        tooltip_labels = tooltip_dict["türkçe"]
     elif language.get() == "english":
-        menu_labels = {
-            "file":{"label": "File",
-                    "menus":[
-                        "New",
-                        "New Window",
-                        "Open",
-                        "Save",
-                        "Save As",
-                        "Exit"
-                        ]
-                    },
-            "edit":{"label": "Edit",
-                    "menus":[
-                        "Undo",
-                        "Redo",
-                        "Cut",
-                        "Copy",
-                        "Paste",
-                        "Select All",
-                        "Indent the line",
-                        "Decrease the indent of the line",
-                        "Indent and Move to New Line"
-                        ]
-                    },
-            "view":{"label": "View",
-                   "menus": [
-                        "Increase the Font Size",
-                        "Decrease the Font Size",
-                        "Set the Default Font Size",
-                        "Fullscreen",
-                        "Cover the Screen"
-                       ]
-                   },
-            "settings":{"label": "Settings",
-                        "menus":[
-                            "Auto-Save",
-                            "Show Tooltips",
-                            "Syntax Highlighting",
-                            "Line Numbers",
-                            "Language"
-                            ]
-                        },
-            "tools": {"label": "Tools",
-                      "menus": [
-                          "HTML Forms", 
-                          "Markdown to HTML",
-                          ]
-                      }
-            }
+        menu_labels = menu_labels_dict["english"]
+        tooltip_labels = tooltip_dict["english"]
     elif language.get() == "deutsch":
-        menu_labels = {
-            "file":{"label": "Datei",
-                    "menus":[
-                        "Neu",
-                        "Neues Fenster",
-                        "Öffnen",
-                        "Speichern",
-                        "Speichern Unter",
-                        "Ausgang"
-                        ]
-                    },
-            "edit":{"label": "Ordnung",
-                    "menus":[
-                        "Rückgängig",
-                        "Wiederholen",
-                        "Schneiden",
-                        "Kopieren",
-                        "Einfügen",
-                        "Alles Auswählen",
-                        "Zeile Einrücken",
-                        "Einzug Der Zeile Verringern",
-                        "Einrücken und Eine neue Zeile beginnen"
-                        ]
-                    },
-            "view":{"label": "Ansicht",
-                   "menus": [
-                        "Schriftgröße vergrößern",
-                        "Schriftgröße verkleinern",
-                        "Standard-Schriftgröße festlegen",
-                        "Vollbild",
-                        "Bildschirm abdecken"
-                        ]
-                   },
-            "settings":{"label": "Einstellungen",
-                        "menus":[
-                            "Automatisch Speichern",
-                            "Tooltipps Anzeigen",
-                            "Syntaxhervorhebung",
-                            "Zeilennummern",
-                            "Sprache"
-                            ]
-                        },
-            "tools": {"label": "Werkzeuge",
-                      "menus": [
-                          "HTML-Formulare", 
-                          "Von Markdown zu HTML",
-                          ]
-                      }
-            }
+        menu_labels = menu_labels_dict["deutsch"]
+        tooltip_labels = tooltip_dict["deutsch"]
     elif language.get() == "русский":
-        menu_labels = {
-            "file": {"label": "Файл",
-                "menus": [
-                        "Новый",
-                        "Новое окно",
-                        "Открыть",
-                        "Сохранить",
-                        "Сохранить как",
-                        "Выход"
-                    ]
-            },
-            "edit": {"label": "Правка",
-                "menus": [
-                    "Отменить",
-                    "Повторить",
-                    "Вырезать",
-                    "Копировать",
-                    "Вставить",
-                    "Выделить все",
-                    "Увеличить отступ строки",
-                    "Уменьшить отступ строки",
-                    "Отступ и новая строка"
-                ]
-            },
-            "view": {"label": "Вид",
-                "menus": [
-                    "Увеличить размер шрифта",
-                    "Уменьшить размер шрифта",
-                    "Установить стандартный размер шрифта",
-                    "Полноэкранный режим",
-                    "Закрыть экран"
-                ]
-            },
-            "settings": {"label": "Настройки",
-                "menus": [
-                    "Автосохранение",
-                    "Показывать подсказки",
-                    "Подсветка синтаксиса",
-                    "Номера строк",
-                    "Язык"
-                ]
-            },
-            "tools": {"label": "Инструменты",
-                "menus": [
-                    "HTML-формы",
-                    "Из Markdown в HTML"
-                ]
-            }
-        }
+        menu_labels = menu_labels_dict["русский"]
+        tooltip_labels = tooltip_dict["русский"]
     
-    if language.get() == "türkçe":
-        ToolTip(about, "Hakkında", shown=show_tooltip.get())
-        ToolTip(run, "Önizleme - Ctrl+P", shown=show_tooltip.get())
-        ToolTip(save, "Kaydet - Ctrl+S", shown=show_tooltip.get())
-        ToolTip(open_, "Aç - Ctrl+O", shown=show_tooltip.get())
-        ToolTip(new, "Yeni - Ctrl+N", shown=show_tooltip.get())
-        
-    elif language.get() == "english":
-        ToolTip(about, "About", shown=show_tooltip.get())
-        ToolTip(run, "Preview - Ctrl+P", shown=show_tooltip.get())
-        ToolTip(save, "Save - Ctrl+S", shown=show_tooltip.get())
-        ToolTip(open_, "Open - Ctrl+O", shown=show_tooltip.get())
-        ToolTip(new, "New - Ctrl+N", shown=show_tooltip.get())
-        
-    elif language.get() == "deutsch":
-        ToolTip(about, "Über", shown=show_tooltip.get())
-        ToolTip(run, "Vorschau - Ctrl+P", shown=show_tooltip.get())
-        ToolTip(save, "Speichern - Ctrl+S", shown=show_tooltip.get())
-        ToolTip(open_, "Öffnen - Ctrl+O", shown=show_tooltip.get())
-        ToolTip(new, "Neu - Ctrl+N", shown=show_tooltip.get())
-        
-    elif language.get() == "русский":
-        ToolTip(about, "О программе", shown=show_tooltip.get())
-        ToolTip(run, "Предварительный просмотр - Ctrl+P", shown=show_tooltip.get())
-        ToolTip(save, "Сохранить - Ctrl+S", shown=show_tooltip.get())
-        ToolTip(open_, "Открыть - Ctrl+O", shown=show_tooltip.get())
-        ToolTip(new, "Новый - Ctrl+N", shown=show_tooltip.get())
+    ToolTip(about, tooltip_labels[4], shown=show_tooltip.get())
+    ToolTip(run, f"{tooltip_labels[3]} - Ctrl+P", shown=show_tooltip.get())
+    ToolTip(save, f"{tooltip_labels[2]} - Ctrl+S", shown=show_tooltip.get())
+    ToolTip(open_, f"{tooltip_labels[1]} - Ctrl+O", shown=show_tooltip.get())
+    ToolTip(new, f"{tooltip_labels[0]} - Ctrl+N", shown=show_tooltip.get())
         
     if lnnumbers.get():
         line_numbers.config(width=45)
@@ -725,7 +546,9 @@ def update_settings(*args):
         "language": language.get(),
         "auto_save": auto_save.get(),
         "highlighting": hghlgtning.get(),
-        "line_numbers": lnnumbers.get()
+        "line_numbers": lnnumbers.get(),
+        "window_size": f"{win.winfo_width()}x{win.winfo_height()}",
+        "window_state": str(win.state())
         }
         
     with open(configuration_file, "w", encoding="utf-8") as f:
@@ -764,7 +587,7 @@ def decrease_size():
         
 def reset_size():
     global font_size
-    font_size = 10
+    font_size = 9
     update_fonts()
     highlight(text)
     

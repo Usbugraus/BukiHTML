@@ -4,17 +4,7 @@ from ToolWindow import toolwindow
 
 def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe"):
     tb_text = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-    errorwin = tk.Toplevel(parent)
-    
-    if language == "türkçe":
-        errorwin.title("Hata")
-    elif language == "english":
-        errorwin.title("Error")
-    elif language == "deutsch":
-        errorwin.title("Fehler")
-    elif language == "русский":
-        errorwin.title("Ошибка")
-        
+    errorwin = tk.Toplevel(parent)     
     errorwin.resizable(False, False)
     errorwin.transient(parent)
     errorwin.lift()
@@ -34,7 +24,7 @@ def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe
     elif language == "русский":
         tk.Label(frame, text="Произошла ошибка: ").pack(anchor="nw", padx=5, pady=(5, 0))
     
-    error = tk.Text(frame, bd=1, font=("Consolas", 10), width=50, height=20, wrap="none", padx=5, pady=5)
+    error = tk.Text(frame, bd=1, font=("Consolas", 9), width=50, height=20, wrap="none", padx=5, pady=5)
     error.insert(1.0, traceback.format_exc())
     error.config(state="disabled")
     
@@ -59,20 +49,24 @@ def error_handler(exc_type, exc_value, exc_traceback, parent, language="türkçe
          error.clipboard_append(error_content)
          cp.config(state="disabled")
     
-    ok = tk.Button(frame2, text="", bd=0, command=lambda: errorwin.destroy(), width=30, activebackground="#ffff00")
-    ok.pack(padx=3, pady=3, side="right")
-    cp = tk.Button(frame2, text="", bd=0, command=copy_error, width=30, activebackground="#ffff00")
-    cp.pack(padx=(3, 0), pady=3, side="left")
+    ok = tk.Button(frame2, text="", bd=0, command=lambda: errorwin.destroy(), width=10, activebackground="#ffff00")
+    ok.grid(padx=3, pady=3, row=0, column=0)
+    cp = tk.Button(frame2, text="", bd=0, command=copy_error, width=10, activebackground="#ffff00")
+    cp.grid(padx=(0, 3), pady=3, row=0, column=1)
     
     if language == "türkçe":
+        errorwin.title("Hata")
         ok.config(text="Tamam")
         cp.config(text="Kopyala")
     elif language == "english":
+        errorwin.title("Error")
         ok.config(text="Ok")
         cp.config(text="Copy")
     elif language == "deutsch":
+        errorwin.title("Fehler")
         ok.config(text="Okay")
         cp.config(text="Kopieren")
     elif language == "русский":
+        errorwin.title("Ошибка")
         ok.config(text="Окей")
         cp.config(text="Копировать")

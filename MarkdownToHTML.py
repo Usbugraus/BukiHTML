@@ -74,7 +74,7 @@ def md2html_dialog(parent, language="türkçe"):
     md_frame = tk.LabelFrame(w, text="Markdown", bd=1, relief="raised", padx=5, pady=5)
     md_frame.pack(padx=10, pady=(10, 0))
     
-    md_text = tk.Text(md_frame, bd=1, padx=5, pady=5, font=("Consolas", 10), width=70, height=15, wrap="none")
+    md_text = tk.Text(md_frame, bd=1, padx=5, pady=5, font=("Consolas", 9), width=70, height=15, wrap="none")
     
     mscroll = tk.Scrollbar(md_frame)
     mscroll.pack(side="right", pady=5, fill="y")
@@ -93,7 +93,7 @@ def md2html_dialog(parent, language="türkçe"):
     toolbar = tk.Frame(html_frame, bd=1, relief="raised", padx=3, pady=3)
     toolbar.pack(pady=(0, 5), anchor="w")
     
-    html_text = tk.Text(html_frame, bd=1, padx=5, pady=5, font=("Consolas", 10), width=70, height=15, wrap="none")
+    html_text = tk.Text(html_frame, bd=1, padx=5, pady=5, font=("Consolas", 9), width=70, height=15, wrap="none")
     
     for tag, style in TAG_COLORS.items():
         html_text.tag_config(
