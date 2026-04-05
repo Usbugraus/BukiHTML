@@ -283,8 +283,7 @@ def save_on_exit():
     configuration["window_size"] = f"{win.winfo_width()}x{win.winfo_height()}"
     configuration["window_state"] = str(win.state())
 
-    with open(configuration_file, "w", encoding="utf-8") as f:
-        json.dump(configuration, f, ensure_ascii=False, indent=4)
+    update_settings()
 
     if changed:
         if language.get() == "türkçe":
@@ -476,7 +475,7 @@ def unindent(event=None):
     return "break" 
 
 def update_settings(*args):
-    global menu_labels, configuration_file, tooltip_labels
+    global menu_labels, configuration_file, tooltip_labels, menu_labels_dict, tooltip_dict
     if language.get() == "türkçe":
         menu_labels = menu_labels_dict["türkçe"]
         tooltip_labels = tooltip_dict["türkçe"]
@@ -552,7 +551,7 @@ def update_settings(*args):
         }
         
     with open(configuration_file, "w", encoding="utf-8") as f:
-        cfile = json.dump(config, f, ensure_ascii=False, indent=4)
+        json.dump(config, f, ensure_ascii=False, indent=4)
         
 def update_fonts():
     global SYNTAX_COLORS
