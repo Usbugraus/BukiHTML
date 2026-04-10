@@ -9,17 +9,30 @@ BukiHTML, Python ve Tkinter ile yapılmış gelişmiş ve hızlı bir HTML IDE's
 - Girinti ekleyerek yeni satıra geçme
 
 ## Kurulum
-BukiHTML'i depodaki "Releases" bölümünden istediğiniz sürümü indirebilirsiniz. Kurmanıza da gerek yok. Eğer isterseniz kaynak kodunu da indirebilirsiniz.
+Kurmanıza gerek yok. Eğer uygulama olarak indirdiyseniz `.zip` dosyasını çıkartın ve uygulamayı çalıştırın.
 ***
-# BukiHTML - ENG
+# BukiHTML - EN
 BukiHTML is an advanced and fast HTML IDE made with Python and Tkinter. With BukiHTML, you can create your own websites.
 
 ## Features
 - Syntax highlighting
 - Line numbers
-- Conversion from Markdown to HTML
+- Convert from Markdown to HTML
 - HTML form menu
-- Indent to move to a new line
+- Move to a new line by adding indentation
 
 ## Installation
-You can download the version of BukiHTML you want from the "Releases" section of the repository. There is no need to install it. If you want, you can also download the source code.
+No need to install. If you downloaded it as an application, extract the `.zip` file and run the application.
+***
+# BukiHTML - DE
+BukiHTML ist eine fortgeschrittene und schnelle HTML-IDE, die mit Python und Tkinter erstellt wurde. Mit BukiHTML können Sie Ihre eigenen Webseiten erstellen.
+
+## Funktionen
+- Syntaxhervorhebung
+- Zeilennummern
+- Umwandlung von Markdown in HTML
+- HTML-Formularmenü
+- Wechsel auf eine neue Zeile durch Einrücken
+
+## Installation
+Sie müssen nichts installieren. Wenn Sie es als Anwendung heruntergeladen haben, entpacken Sie die `.zip`-Datei und starten Sie die Anwendung.
