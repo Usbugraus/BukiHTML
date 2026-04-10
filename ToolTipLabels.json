@@ -1,0 +1,30 @@
+{
+    "türkçe": [
+        "Yeni",
+        "Aç",
+        "Kaydet",
+        "Önizleme",
+        "Hakkında"
+    ],
+    "english": [
+        "New",
+        "Open",
+        "Save",
+        "Preview",
+        "About"
+    ],
+    "deutsch": [
+        "Neu",
+        "Öffnen",
+        "Speichern",
+        "Vorschau",
+        "Über"
+    ],
+    "русский": [
+        "Новый",
+        "Открыть",
+        "Сохранить",
+        "Предварительный просмотр",
+        "О программе"
+    ]
+}

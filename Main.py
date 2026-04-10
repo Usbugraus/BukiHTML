@@ -28,45 +28,9 @@ current_file = None
 filepath = None
 font_size = 9
 configuration_file = "Configuration.json"
-language_directory = os.path.join(os.path.dirname(__file__), "Language")
+data_directory = os.path.join(os.path.dirname(__file__), "Data")
 menu_labels = {}
-TAG_COLORS = {
-    "tag": ["#0000bf", ("Consolas", font_size)],
-    "attribute": ["#bf0000", ("Consolas", font_size)],
-    "value": ["#00bf00", ("Consolas", font_size)],
-    "comment": ["#808080", ("Consolas", font_size, "italic")],
-}
-names = [
-    "<html>", "<head>", "<title>", "<base>", "<link>", "<meta>", "<style>",
-    "<body>",
-    "<article>", "<section>", "<nav>", "<aside>",
-    "<h1>", "<h2>", "<h3>", "<h4>", "<h5>", "<h6>",
-    "<header>", "<footer>", "<address>", "<main>",
-    "<p>", "<hr>", "<pre>", "<blockquote>",
-    "<ol>", "<ul>", "<li>", "<dl>", "<dt>", "<dd>",
-    "<figure>", "<figcaption>", "<div>",
-    "<a>", "<em>", "<strong>", "<small>", "<s>", "<cite>", "<q>",
-    "<dfn>", "<abbr>", "<data>", "<time>", "<code>", "<var>",
-    "<samp>", "<kbd>", "<sub>", "<sup>", "<i>", "<b>", "<u>",
-    "<mark>", "<ruby>", "<rt>", "<rp>", "<bdi>", "<bdo>",
-    "<span>", "<br>", "<wbr>",
-    "<ins>", "<del>",
-    "<img>", "<iframe>", "<embed>", "<object>", "<param>",
-    "<video>", "<audio>", "<source>", "<track>",
-    "<canvas>", "<map>", "<area>",
-    "<svg>", "<math>",
-    "<table>", "<caption>", "<colgroup>", "<col>",
-    "<tbody>", "<thead>", "<tfoot>",
-    "<tr>", "<td>", "<th>",
-    "<form>", "<label>", "<input>", "<button>",
-    "<select>", "<datalist>", "<optgroup>", "<option>",
-    "<textarea>", "<output>", "<progress>", "<meter>",
-    "<fieldset>", "<legend>",
-    "<details>", "<summary>", "<dialog>",
-    "<script>", "<noscript>", "<template>", "<slot>",
-    "<picture>"
-]
-
+tooltip_labels = {}
 
 win = tk.Tk()
 win.minsize(500, 400)
@@ -79,17 +43,27 @@ def report_callback_exception(exc_type, exc_value, exc_traceback):
 
 win.report_callback_exception = report_callback_exception
 
-with open(os.path.join(language_directory, "MenuLabels.json"), "r", encoding="utf-8") as f:
+with open(os.path.join(data_directory, "MenuLabels.json"), "r", encoding="utf-8") as f:
     menu_labels_dict = json.load(f)
     
-with open(os.path.join(language_directory, "ToolTipLabels.json"), "r", encoding="utf-8") as f:
+with open(os.path.join(data_directory, "ToolTipLabels.json"), "r", encoding="utf-8") as f:
     tooltip_dict = json.load(f)
+    
+with open(os.path.join(data_directory, "AutoCompleterNames.json"), "r", encoding="utf-8") as f:
+    names = json.load(f)
+    
+with open(os.path.join(data_directory, "SyntaxHighlighterColors.json"), "r", encoding="utf-8") as f:
+    TAG_COLORS = json.load(f)
+    
+for key in TAG_COLORS:
+    color, font = TAG_COLORS[key]
+    TAG_COLORS[key] = (color, tuple(font))
 
 if os.path.exists(configuration_file):
     try:
         with open(configuration_file, "r", encoding="utf-8") as f:
             configuration = json.load(f)
-    except:
+    except (json.JSONDecodeError, KeyError):
         messagebox.showwarning("Warning", "The configuration file is corrupt. Therefore, the settings have been reset.")
         configuration = {
             "show_tooltip": True,
@@ -138,17 +112,9 @@ line_numbers = tk.Canvas(editor, width=45, background="#f0f0f0", highlightthickn
 
 text = tk.Text(editor, wrap="none", width=60, height=20, font=("Consolas", font_size), bd=1, undo=True, padx=5, pady=5)
 
-for tag, style in TAG_COLORS.items():
-    text.tag_config(
-        tag,
-        foreground=style[0],
-        selectforeground="white",
-        font=style[1]
-    )
-
 def highlight(widget):
     if hghlgtning.get():
-        highlighter(widget)
+        highlighter(widget, tag_colors=TAG_COLORS)
 
 def save_file(force=False):
     global current_file, changed
@@ -158,13 +124,16 @@ def save_file(force=False):
         return
 
     if changed or force:
-        with open(current_file, "w", encoding="utf-8") as f:
-            f.write(text.get("1.0", "end-1c"))
+        try:
+            with open(current_file, "w", encoding="utf-8") as f:
+                f.write(text.get("1.0", "end-1c"))
 
-        win.title(f'BukiHTML - {current_file}')
-        changed = False
-        save.config(state="disabled")
-        update_status()
+            win.title(f'BukiHTML - {current_file}')
+            changed = False
+            save.config(state="disabled")
+            update_status()
+        except Exception:
+            error_handler(*sys.exc_info(), parent=win)
 
 def save_as():
     global current_file, filepath
@@ -213,20 +182,23 @@ def open_file():
         filepath = filedialog.askopenfilename(title='Открыть', filetypes=[('HTML файлы', '*.html'), ('Все файлы', '*.*')])        
     
     if filepath:
-        with open(filepath, 'r', encoding='utf-8') as file:
-            opened_file = file.read()
-            
-        text.delete(1.0, tk.END)
-        text.insert(1.0, opened_file)
-        current_file = filepath
-        win.title(f'BukiHTML - {current_file}')
-        changed = False
-        text.edit_modified(False)
-        update()
-        highlight(text)
-        save.config(state="disabled")
-        text.edit_reset()
-        update_status()
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                opened_file = f.read()
+                
+            text.delete(1.0, tk.END)
+            text.insert(1.0, opened_file)
+            current_file = filepath
+            win.title(f'BukiHTML - {current_file}')
+            changed = False
+            text.edit_modified(False)
+            update()
+            highlight(text)
+            save.config(state="disabled")
+            text.edit_reset()
+            update_status()
+        except Exception:
+            error_handler(*sys.exc_info(), parent=win)
 
 def new_file():
     global current_file, filepath, changed
@@ -337,13 +309,13 @@ def run_():
         
 def show_about():
     if language.get() == "türkçe":
-        messagebox.showinfo("Hakkında", "BukiHTML v1.1.0\n© telif Hakkı 2025-2026 Buğra US")
+        messagebox.showinfo("Hakkında", "BukiHTML v1.1.5\n© telif Hakkı 2026 Buğra US")
     elif language.get() == "english":
-        messagebox.showinfo("About", "BukiHTML v1.1.0\n© copyright 2025-2026 Buğra US")
+        messagebox.showinfo("About", "BukiHTML v1.1.5\n© copyright 2026 Buğra US")
     elif language.get() == "deutsch":
-        messagebox.showinfo("Über", "BukiHTML v1.1.0\n© urheberrecht 2025-2026 Buğra US")
+        messagebox.showinfo("Über", "BukiHTML v1.1.5\n© urheberrecht 2026 Buğra US")
     elif language.get() == "русский":
-        messagebox.showinfo("О программе", "BukiHTML v1.1.0\n© aвторские права 2025-2026 Buğra US")
+        messagebox.showinfo("О программе", "BukiHTML v1.1.5\n© aвторские права 2026 Buğra US")
     
 def autosv(event):
     global current_file
@@ -424,7 +396,7 @@ save.grid(row=0, column=2)
 run = tk.Button(html_toolbar, text="\uE163", width=5, pady=4, bd=0, command=run_, activebackground="#0040bf", font=("Segoe Fluent Icons", 10), activeforeground="white", fg="#0040bf")
 run.grid(row=0, column=3)
 
-about = tk.Button(other_toolbar, text="\uE712", width=5, pady=4, bd=0, command=show_about, activebackground="yellow", font=("Segoe Fluent Icons", 10))
+about = tk.Button(other_toolbar, text="\uE946", width=5, pady=4, bd=0, command=show_about, activebackground="yellow", font=("Segoe Fluent Icons", 10))
 about.grid(row=0, column=0, sticky="e")
 
 scroll = tk.Scrollbar(editor)
@@ -475,7 +447,7 @@ def unindent(event=None):
     return "break" 
 
 def update_settings(*args):
-    global menu_labels, configuration_file, tooltip_labels, menu_labels_dict, tooltip_dict
+    global menu_labels, configuration_file, tooltip_labels, menu_labels_dict, tooltip_dict, theme_dict, theme_data
     if language.get() == "türkçe":
         menu_labels = menu_labels_dict["türkçe"]
         tooltip_labels = tooltip_dict["türkçe"]
@@ -704,7 +676,7 @@ menu.add_cascade(menu=edit_menu, label="")
 
 view_menu = tk.Menu(menu, tearoff=0)
 view_menu.add_command(label="", command=increase_size, accelerator="Ctrl++")
-view_menu.add_command(label="", command=increase_size, accelerator="Ctrl+-")
+view_menu.add_command(label="", command=decrease_size, accelerator="Ctrl+-")
 view_menu.add_command(label="", command=reset_size, accelerator="Ctrl+Shift+R")
 view_menu.add_separator()
 view_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=fullscreen, accelerator="F11")
@@ -716,6 +688,7 @@ pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=auto_s
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=show_tooltip)
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=hghlgtning)
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=lnnumbers)
+
 lang_menu = tk.Menu(menu, tearoff=0)
 lang_menu.add_radiobutton(label='Türkçe', variable=language, value="türkçe")
 lang_menu.add_radiobutton(label='English', variable=language, value="english")

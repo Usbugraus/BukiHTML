@@ -1,8 +1,10 @@
 import tkinter as tk
 import markdown
-import ctypes, os, sys
+import html2text
+import ctypes, os, sys, json
 from ToolWindow import toolwindow
 from SyntaxHighlighter import highlighter
+from AutoCompleter import AutoCompleter
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
@@ -12,12 +14,19 @@ except Exception:
     except:
         pass
     
-TAG_COLORS = {
-    "tag": ["#0000bf", ("Consolas", 10)],
-    "attribute": ["#bf0000", ("Consolas", 10)],
-    "value": ["#00bf00", ("Consolas", 10)],
-    "comment": ["#808080", ("Consolas", 10, "italic")],
-}
+data_directory = os.path.join(os.path.dirname(__file__), "Data")
+with open(os.path.join(data_directory, "SyntaxHighlighterColors.json"), "r", encoding="utf-8") as f:
+    TAG_COLORS = json.load(f)
+    
+with open(os.path.join(data_directory, "AutoCompleterNames.json"), "r", encoding="utf-8") as f:
+    names = json.load(f)
+    
+for key in TAG_COLORS:
+    color, font = TAG_COLORS[key]
+    TAG_COLORS[key] = (color, tuple(font))
+
+def html_to_md(html_text=""):
+    return html2text.html2text(html_text)
 
 def md_to_html(md_text=""):
     html = markdown.markdown(
@@ -44,7 +53,7 @@ def md_to_html(md_text=""):
     return html
 
 def md2html_dialog(parent, language="türkçe"):
-    global TAG_COLORS
+    global TAG_COLORS, names
     w = tk.Toplevel(parent)
     w.resizable(False, False)
     w.lift()
@@ -90,9 +99,6 @@ def md2html_dialog(parent, language="türkçe"):
     html_frame = tk.LabelFrame(w, text="HTML", bd=1, relief="raised", padx=5, pady=5)
     html_frame.pack(padx=10, pady=10)
     
-    toolbar = tk.Frame(html_frame, bd=1, relief="raised", padx=3, pady=3)
-    toolbar.pack(pady=(0, 5), anchor="w")
-    
     html_text = tk.Text(html_frame, bd=1, padx=5, pady=5, font=("Consolas", 9), width=70, height=15, wrap="none")
     
     for tag, style in TAG_COLORS.items():
@@ -102,17 +108,6 @@ def md2html_dialog(parent, language="türkçe"):
             selectforeground="white",
             font=style[1]
         )
-        
-    html_text.config(state="disabled")
-    
-    def copy_html():
-        html = html_text.get("1.0", "end-1c")
-        html_text.clipboard_clear()
-        html_text.clipboard_append(html)
-        copy.config(state="disabled")
-    
-    copy = tk.Button(toolbar, width=5, pady=4, text="", bd=0, font=("Segoe Fluent Icons", 10), activebackground="#ffff00", command=copy_html)
-    copy.pack(side="bottom", anchor="sw")
         
     hscroll = tk.Scrollbar(html_frame)
     hscroll.pack(side="right", pady=5, fill="y")
@@ -125,21 +120,27 @@ def md2html_dialog(parent, language="türkçe"):
     html_text.config(xscrollcommand=hscroll_h.set, yscrollcommand=hscroll.set)
     html_text.pack()
     
-    def update(event=None):
-        if not md_text.edit_modified():
-            return
+    def update_from_md(event=None):
 
         md = md_text.get("1.0", "end-1c")
         html = md_to_html(md_text=md)
 
-        html_text.config(state="normal")
         html_text.delete("1.0", tk.END)
         html_text.insert("1.0", html)
 
-        highlighter(html_text)
+        highlighter(html_text, TAG_COLORS)
+        
+    def update_from_html(event=None):
 
-        html_text.config(state="disabled")
+        html = html_text.get("1.0", "end-1c")
+        md = html_to_md(html)
 
-        md_text.edit_modified(False)
+        md_text.delete("1.0", tk.END)
+        md_text.insert("1.0", md)
+        
+        highlighter(html_text, TAG_COLORS)
+
+    md_text.bind("<KeyRelease>", update_from_md)
+    html_text.bind("<KeyRelease>", update_from_html)
     
-    md_text.bind("<<Modified>>", update)
+    AutoCompleter(html_text, names)

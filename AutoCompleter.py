@@ -107,8 +107,14 @@ class AutoCompleter:
                 bd=1,
                 highlightthickness=0
             )
-            self.listbox.pack(padx=5, pady=5)
+            self.listbox.pack(padx=(5, 0), pady=5, side="left")
             self.listbox.bind("<Double-Button-1>", self._mouse_select)
+            
+            self.scrollbar = tk.Scrollbar(self.popup, orient="vertical")
+            self.scrollbar.pack(padx=(0, 5), pady=5, side="right", fill="y")
+            
+            self.scrollbar.config(command=self.listbox.yview)
+            self.listbox.config(yscrollcommand=self.scrollbar.set)
 
         self.listbox.delete(0, tk.END)
         for m in matches:

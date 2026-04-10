@@ -1,0 +1,22 @@
+{
+    "türkçe": [
+        "Çık",
+        "Kopyala",
+        "Hata raporu oluştur"
+    ],
+    "english": [
+        "Exit",
+        "Copy",
+        "Create error report"
+    ],
+    "deutsch": [
+        "Ausgang",
+        "Kopieren",
+        "Fehlerbericht erstellen"
+    ],
+    "русский": [
+        "Выйти",
+        "Копировать",
+        "Создать отчет об ошибке"
+    ]
+}

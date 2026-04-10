@@ -1,0 +1,218 @@
+{
+    "türkçe": {
+        "file": {
+            "label": "Dosya",
+            "menus": [
+                "Yeni",
+                "Yeni pencere",
+                "Aç",
+                "Kaydet",
+                "Farklı kaydet",
+                "Çık"
+            ]
+        },
+        "edit": {
+            "label": "Düzen",
+            "menus": [
+                "Geri al",
+                "Yinele",
+                "Kes",
+                "Kopyala",
+                "Yapıştır",
+                "Tümünü seç",
+                "Satırı girintile",
+                "Satırın girintisini azalt",
+                "Girintile ve yeni satıra geç"
+            ]
+        },
+        "view": {
+            "label": "Görünüm",
+            "menus": [
+                "Yazı tipi boyutunu arttır",
+                "Yazı tipi boyutunu azalt",
+                "Varsayılan yazı tipi boyutunu ayarla",
+                "Tam ekran",
+                "Ekranı kapla"
+            ]
+        },
+        "settings": {
+            "label": "Ayarlar",
+            "menus": [
+                "Otomatik kaydet",
+                "Araç ipuçlarını göster",
+                "Sözdizimi renklendirme",
+                "Satır numaraları",
+                "Dil"
+            ]
+        },
+        "tools": {
+            "label": "Araçlar",
+            "menus": [
+                "HTML formları",
+                "Markdown'dan HTML'e"
+            ]
+        }
+    },
+    "english": {
+        "file": {
+            "label": "File",
+            "menus": [
+                "New",
+                "New window",
+                "Open",
+                "Save",
+                "Save as",
+                "Exit"
+            ]
+        },
+        "edit": {
+            "label": "Edit",
+            "menus": [
+                "Undo",
+                "Redo",
+                "Cut",
+                "Copy",
+                "Paste",
+                "Select all",
+                "Indent the line",
+                "Decrease the indent of the line",
+                "Indent and move to new line"
+            ]
+        },
+        "view": {
+            "label": "View",
+            "menus": [
+                "Increase the font size",
+                "Decrease the font size",
+                "Set the default font size",
+                "Fullscreen",
+                "Cover the screen"
+            ]
+        },
+        "settings": {
+            "label": "Settings",
+            "menus": [
+                "Auto-Save",
+                "Show Tooltips",
+                "Syntax Highlighting",
+                "Line Numbers",
+                "Language"
+            ]
+        },
+        "tools": {
+            "label": "Tools",
+            "menus": [
+                "HTML forms",
+                "Markdown to HTML"
+            ]
+        }
+    },
+    "deutsch": {
+        "file": {
+            "label": "Datei",
+            "menus": [
+                "Neu",
+                "Neues fenster",
+                "Öffnen",
+                "Speichern",
+                "Speichern unter",
+                "Ausgang"
+            ]
+        },
+        "edit": {
+            "label": "Ordnung",
+            "menus": [
+                "Rückgängig",
+                "Wiederholen",
+                "Schneiden",
+                "Kopieren",
+                "Einfügen",
+                "Alles auswählen",
+                "Zeile einrücken",
+                "Einzug der zeile verringern",
+                "Einrücken und eine neue zeile beginnen"
+            ]
+        },
+        "view": {
+            "label": "Ansicht",
+            "menus": [
+                "Schriftgröße vergrößern",
+                "Schriftgröße verkleinern",
+                "Standard-Schriftgröße festlegen",
+                "Vollbild",
+                "Bildschirm abdecken"
+            ]
+        },
+        "settings": {
+            "label": "Einstellungen",
+            "menus": [
+                "Automatisch speichern",
+                "Tooltipps anzeigen",
+                "Syntaxhervorhebung",
+                "Zeilennummern",
+                "Sprache"
+            ]
+        },
+        "tools": {
+            "label": "Werkzeuge",
+            "menus": [
+                "HTML-Formulare",
+                "Von Markdown zu HTML"
+            ]
+        }
+    },
+    "русский": {
+        "file": {
+            "label": "Файл",
+            "menus": [
+                "Новый",
+                "Новое окно",
+                "Открыть",
+                "Сохранить",
+                "Сохранить как",
+                "Выход"
+            ]
+        },
+        "edit": {
+            "label": "Правка",
+            "menus": [
+                "Отменить",
+                "Повторить",
+                "Вырезать",
+                "Копировать",
+                "Вставить",
+                "Выделить все",
+                "Увеличить отступ строки",
+                "Уменьшить отступ строки",
+                "Отступ и новая строка"
+            ]
+        },
+        "view": {
+            "label": "Вид",
+            "menus": [
+                "Увеличить размер шрифта",
+                "Уменьшить размер шрифта",
+                "Установить стандартный размер шрифта",
+                "Полноэкранный режим",
+                "Закрыть экран"
+            ]
+        },
+        "settings": {
+            "label": "Настройки",
+            "menus": [
+                "Автосохранение",
+                "Показывать подсказки",
+                "Подсветка синтаксиса",
+                "Номера строк",
+                "Язык"
+            ]
+        },
+        "tools": {
+            "label": "Инструменты",
+            "menus": [
+                "HTML-формы",
+                "Из Markdown в HTML"
+            ]
+        }
+    }
+}
