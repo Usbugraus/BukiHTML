@@ -42,6 +42,13 @@
                 "Araç ipuçlarını göster",
                 "Sözdizimi renklendirme",
                 "Satır numaraları",
+                "Otomatik tamamlama",
+                "Girinti seviyesi",
+                "Sözdizimi renkleri",
+                "Etiket",
+                "Özellik",
+                "Değer",
+                "Yorum",
                 "Dil"
             ]
         },
@@ -92,10 +99,17 @@
         "settings": {
             "label": "Settings",
             "menus": [
-                "Auto-Save",
-                "Show Tooltips",
-                "Syntax Highlighting",
-                "Line Numbers",
+                "Auto-save",
+                "Show tooltips",
+                "Syntax highlighting",
+                "Line numbers",
+                "Auto-complete",
+                "Indent level",
+                "Syntax colors",
+                "Tag",
+                "Attribute",
+                "Value",
+                "Comment",
                 "Language"
             ]
         },
@@ -150,6 +164,13 @@
                 "Tooltipps anzeigen",
                 "Syntaxhervorhebung",
                 "Zeilennummern",
+                "Autovervollständigung",
+                "Einzugsebene",
+                "Syntaxfarben",
+                "Tag",
+                "Attribut",
+                "Wert",
+                "Kommentar",
                 "Sprache"
             ]
         },
@@ -204,6 +225,13 @@
                 "Показывать подсказки",
                 "Подсветка синтаксиса",
                 "Номера строк",
+                "Автозаполнение",
+                "Уровень отступа",
+                "Цвета синтаксиса",
+                "Тег",
+                "Атрибут",
+                "Значение",
+                "Комментарий",
                 "Язык"
             ]
         },

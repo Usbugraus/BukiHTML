@@ -5,5 +5,39 @@
     "highlighting": true,
     "line_numbers": true,
     "window_size": "800x600",
-    "window_state": "normal"
+    "window_state": "normal",
+    "font_size": 9,
+    "auto_complete": true,
+    "indent_level": 4,
+    "syntax_highlighting": {
+        "tag": [
+            "#0000bf",
+            [
+                "Consolas",
+                9
+            ]
+        ],
+        "attribute": [
+            "#bf0000",
+            [
+                "Consolas",
+                9
+            ]
+        ],
+        "value": [
+            "#00bf00",
+            [
+                "Consolas",
+                9
+            ]
+        ],
+        "comment": [
+            "#808080",
+            [
+                "Consolas",
+                9,
+                "italic"
+            ]
+        ]
+    }
 }

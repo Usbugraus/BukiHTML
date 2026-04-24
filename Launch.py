@@ -1,8 +1,17 @@
 from tkinter import messagebox
-import traceback, datetime
+import traceback, datetime, ctypes
+
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1)
+except Exception:
+    try:
+        ctypes.windll.user32.SetProcessDPIAware()
+    except:
+        pass
 
 try:
     import Main
+
 except Exception:
     messagebox.showerror(
         "Error",

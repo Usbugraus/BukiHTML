@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import ctypes
 
 try:
@@ -10,12 +11,14 @@ except Exception:
         pass
 
 class AutoCompleter:
-    def __init__(self, text_widget, words):
+    def __init__(self, text_widget, words, font_size=9):
         self.text = text_widget
         self.words = words
 
         self.popup = None
         self.listbox = None
+        self.shown = True
+        self.font_size = font_size
 
         self.text.bind("<KeyRelease>", self._on_keyrelease, add="+")
         self.text.bind("<Down>", self._down)
@@ -24,7 +27,7 @@ class AutoCompleter:
         self.text.bind("<FocusOut>", self._hide, add="+")
 
     def _complete_if_popup(self, event):
-        if self.popup:
+        if self.popup and self.shown:
             return self._complete(event)
         return None
 
@@ -47,6 +50,10 @@ class AutoCompleter:
         return start, word
 
     def _on_keyrelease(self, event):
+        if not self.shown:
+            self._hide()
+            return
+
         if event.keysym in ("Up", "Down", "Tab", "Escape"):
             return
 
@@ -80,7 +87,7 @@ class AutoCompleter:
         return "break"
 
     def _complete(self, event):
-        if not self.listbox:
+        if not self.listbox and self.shown:
             return "break"
 
         value = self.listbox.get(tk.ACTIVE)
@@ -93,47 +100,60 @@ class AutoCompleter:
         return "break"
 
     def _show(self, matches):
+        if not self.shown:
+            return
+
         if not self.popup:
             self.popup = tk.Toplevel(self.text, bd=1, relief="raised")
             self.popup.transient(self.text.winfo_toplevel())
             self.popup.overrideredirect(True)
             self.popup.lift(self.text.winfo_toplevel())
 
+            style = ttk.Style()
+            style.theme_use("default")
+
+            style.configure("TScrollbar", background="SystemButtonFace", troughcolor="#bfbfbf", arrowsize=14)
+            style.map("TScrollbar", background=[("active", "SystemButtonFace"), ("!active", "SystemButtonFace")], relief=[("pressed", "sunken")])
+
             self.listbox = tk.Listbox(
                 self.popup,
                 height=10,
                 width=20,
-                font=("Consolas", 10),
+                font=("Consolas", self.font_size),
                 bd=1,
-                highlightthickness=0
+                highlightthickness=0,
+                selectbackground="#0040bf",
+                selectborderwidth=1,
+                selectforeground="#ffffff",
             )
             self.listbox.pack(padx=(5, 0), pady=5, side="left")
             self.listbox.bind("<Double-Button-1>", self._mouse_select)
             
-            self.scrollbar = tk.Scrollbar(self.popup, orient="vertical")
+            self.scrollbar = ttk.Scrollbar(self.popup, orient="vertical")
             self.scrollbar.pack(padx=(0, 5), pady=5, side="right", fill="y")
             
             self.scrollbar.config(command=self.listbox.yview)
             self.listbox.config(yscrollcommand=self.scrollbar.set)
 
-        self.listbox.delete(0, tk.END)
-        for m in matches:
-            self.listbox.insert(tk.END, m)
+        if self.shown:
+            self.listbox.delete(0, tk.END)
+            for m in matches:
+                self.listbox.insert(tk.END, m)
 
-        self.listbox.selection_set(0)
+            self.listbox.selection_set(0)
 
-        bbox = self.text.bbox("insert")
-        if not bbox:
-            return
+            bbox = self.text.bbox("insert")
+            if not bbox:
+                return
 
-        x, y, w, h = bbox
-        x += self.text.winfo_rootx()
-        y += self.text.winfo_rooty() + h
+            x, y, w, h = bbox
+            x += self.text.winfo_rootx()
+            y += self.text.winfo_rooty() + h
 
-        self.popup.geometry(f"+{x}+{y}")
+            self.popup.geometry(f"+{x}+{y}")
         
     def _mouse_select(self, event):
-        if not self.listbox:
+        if not self.listbox and self.shown:
             return
 
         index = self.listbox.nearest(event.y)
@@ -149,6 +169,12 @@ class AutoCompleter:
         if not self.popup:
             return
 
+        if not self.shown:
+            self.popup.destroy()
+            self.popup = None
+            self.listbox = None
+            return
+
         current_focus = self.text.focus_get()
 
         if current_focus and str(current_focus).startswith(str(self.popup)):
@@ -157,8 +183,12 @@ class AutoCompleter:
         self.popup.destroy()
         self.popup = None
         self.listbox = None
-            
+
     def _check_focus(self):
-        if not self.text.focus_get():
-            self._hide()
+        if self.popup:
+            focus = self.text.focus_get()
+            if not focus or not str(focus).startswith(str(self.popup)):
+                if focus != self.text:
+                    self._hide()
+        self.text.after(200, self._check_focus)
 

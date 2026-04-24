@@ -1,0 +1,26 @@
+{
+    "türkçe": {
+        "save": ["HTML dosyası", "Tüm dosyalar", "Kaydet"],
+        "open": ["HTML dosyası", "Tüm dosyalar", "Aç"],
+        "svwarn": ["Kaydet", "Bu belgeyi kaydetmek istiyor musunuz?"],
+        "about": ["Hakkında", "BukiHTML v1.2.0\n© telif Hakkı 2026 Buğra US"]
+    },
+    "english": {
+        "save": ["HTML files", "All files", "Save"],
+        "open": ["HTML files", "All files", "Open"],
+        "svwarn": ["Save", "Do you want to save this document?"],
+        "about": ["About", "BukiHTML v1.2.0\n© copyright 2026 Buğra US"]
+    },
+    "deutsch": {
+        "save": ["HTML-Dateien", "Alle Dateien", "Speichern"],
+        "open": ["HTML-Dateien", "Alle Dateien", "Öffnen"],
+        "svwarn": ["Speichern", "Möchten Sie dieses Dokument speichern?"],
+        "about": ["Über", "BukiHTML v1.2.0\n© Urheberrecht 2026 Buğra US"]
+    },
+    "русский": {
+        "save": ["HTML-файлы", "Все файлы", "Сохранить"],
+        "open": ["HTML-файлы", "Все файлы", "Открыть"],
+        "svwarn": ["Сохранить", "Вы хотите сохранить этот документ?"],
+        "about": ["О программе", "BukiHTML v1.2.0\n© авторское право 2026 Buğra US"]
+    }
+}
