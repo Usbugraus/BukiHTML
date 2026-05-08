@@ -1,26 +1,62 @@
 {
-    "türkçe": {
+    "turkish": {
         "save": ["HTML dosyası", "Tüm dosyalar", "Kaydet"],
         "open": ["HTML dosyası", "Tüm dosyalar", "Aç"],
         "svwarn": ["Kaydet", "Bu belgeyi kaydetmek istiyor musunuz?"],
-        "about": ["Hakkında", "BukiHTML v1.2.0\n© telif Hakkı 2026 Buğra US"]
+        "about": ["Hakkında", "BukiHTML v1.2.5\n© telif Hakkı 2026 Buğra US"],
+        "syntax": "Sözdizimi Rengi Seç",
+        "back": "Arka Plan Rengi Seç",
+        "fore": "Metin Rengi Seç",
+        "error": ["Hata", "Bir hata oluştu: "]
     },
     "english": {
         "save": ["HTML files", "All files", "Save"],
         "open": ["HTML files", "All files", "Open"],
         "svwarn": ["Save", "Do you want to save this document?"],
-        "about": ["About", "BukiHTML v1.2.0\n© copyright 2026 Buğra US"]
+        "about": ["About", "BukiHTML v1.2.5\n© copyright 2026 Buğra US"],
+        "syntax": "Select Syntax Color",
+        "back": "Select Background Color",
+        "fore": "Select Text Color",
+        "error": ["Error", "An error occured: "]
     },
-    "deutsch": {
+    "german": {
         "save": ["HTML-Dateien", "Alle Dateien", "Speichern"],
         "open": ["HTML-Dateien", "Alle Dateien", "Öffnen"],
         "svwarn": ["Speichern", "Möchten Sie dieses Dokument speichern?"],
-        "about": ["Über", "BukiHTML v1.2.0\n© Urheberrecht 2026 Buğra US"]
+        "about": ["Über", "BukiHTML v1.2.5\n© Urheberrecht 2026 Buğra US"],
+        "syntax": "Syntaxfarbe auswählen",
+        "back": "Hintergrundfarbe auswählen",
+        "fore": "Textfarbe auswählen",
+        "error": ["Fehler", "Ein Fehler ist aufgetreten: "]
     },
-    "русский": {
+    "russian": {
         "save": ["HTML-файлы", "Все файлы", "Сохранить"],
         "open": ["HTML-файлы", "Все файлы", "Открыть"],
         "svwarn": ["Сохранить", "Вы хотите сохранить этот документ?"],
-        "about": ["О программе", "BukiHTML v1.2.0\n© авторское право 2026 Buğra US"]
+        "about": ["О программе", "BukiHTML v1.2.5\n© авторское право 2026 Buğra US"],
+        "syntax": "Выбрать цвет синтаксиса",
+        "back": "Выбрать цвет фона",
+        "fore": "Выбрать цвет текста",
+        "error": ["Ошибка", "Произошла ошибка: "]
+    },
+    "spanish": {
+        "save": ["Archivos HTML", "Todos los archivos", "Guardar"],
+        "open": ["Archivos HTML", "Todos los archivos", "Abrir"],
+        "svwarn": ["Guardar", "¿Desea guardar este documento?"],
+        "about": ["Acerca de", "BukiHTML v1.2.5\n© derechos de autor 2026 Buğra US"],
+        "syntax": "Seleccionar color de sintaxis",
+        "back": "Seleccionar color de fondo",
+        "fore": "Seleccionar color de texto",
+        "error": ["Error", "Ocurrió un error: "]
+    },
+    "french": {
+        "save": ["Fichiers HTML", "Tous les fichiers", "Enregistrer"],
+        "open": ["Fichiers HTML", "Tous les fichiers", "Ouvrir"],
+        "svwarn": ["Enregistrer", "Voulez-vous enregistrer ce document ?"],
+        "about": ["À propos", "BukiHTML v1.2.5\n© droits d’auteur 2026 Buğra US"],
+        "syntax": "Sélectionner la couleur de syntaxe",
+        "back": "Sélectionner la couleur d’arrière-plan",
+        "fore": "Sélectionner la couleur du texte",
+        "error": ["Erreur", "Une erreur s'est produite : "]
     }
 }

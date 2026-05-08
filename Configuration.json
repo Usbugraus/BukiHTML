@@ -9,9 +9,12 @@
     "font_size": 9,
     "auto_complete": true,
     "indent_level": 4,
+    "background": "#ffffff",
+    "foreground": "#000000",
+    "smart_tag_completing": true,
     "syntax_highlighting": {
         "tag": [
-            "#0000bf",
+            "#0040bf",
             [
                 "Consolas",
                 9

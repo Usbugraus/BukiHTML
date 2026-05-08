@@ -1,5 +1,5 @@
 {
-    "türkçe": {
+    "turkish": {
         "file": {
             "label": "Dosya",
             "menus": [
@@ -43,12 +43,15 @@
                 "Sözdizimi renklendirme",
                 "Satır numaraları",
                 "Otomatik tamamlama",
+                "Otomatik etiket tamamlama",
                 "Girinti seviyesi",
                 "Sözdizimi renkleri",
                 "Etiket",
                 "Özellik",
                 "Değer",
                 "Yorum",
+                "Arka plan",
+                "Metin",
                 "Dil"
             ]
         },
@@ -104,12 +107,15 @@
                 "Syntax highlighting",
                 "Line numbers",
                 "Auto-complete",
+                "Auto tag completing",
                 "Indent level",
                 "Syntax colors",
                 "Tag",
                 "Attribute",
                 "Value",
                 "Comment",
+                "Background",
+                "Text",
                 "Language"
             ]
         },
@@ -121,7 +127,7 @@
             ]
         }
     },
-    "deutsch": {
+    "german": {
         "file": {
             "label": "Datei",
             "menus": [
@@ -165,12 +171,15 @@
                 "Syntaxhervorhebung",
                 "Zeilennummern",
                 "Autovervollständigung",
+                "Auto-Tag-Vervollständigung",
                 "Einzugsebene",
                 "Syntaxfarben",
                 "Tag",
                 "Attribut",
                 "Wert",
                 "Kommentar",
+                "Hintergrund",
+                "Text",
                 "Sprache"
             ]
         },
@@ -182,7 +191,7 @@
             ]
         }
     },
-    "русский": {
+    "russian": {
         "file": {
             "label": "Файл",
             "menus": [
@@ -226,12 +235,15 @@
                 "Подсветка синтаксиса",
                 "Номера строк",
                 "Автозаполнение",
+                "Автозаполнение тегов",
                 "Уровень отступа",
                 "Цвета синтаксиса",
                 "Тег",
                 "Атрибут",
                 "Значение",
                 "Комментарий",
+                "фон",
+                "текст",
                 "Язык"
             ]
         },
@@ -240,6 +252,134 @@
             "menus": [
                 "HTML-формы",
                 "Из Markdown в HTML"
+            ]
+        }
+    },
+    "spanish": {
+        "file": {
+            "label": "Archivo",
+            "menus": [
+                "Nuevo",
+                "Nueva ventana",
+                "Abrir",
+                "Guardar",
+                "Guardar como",
+                "Salir"
+            ]
+        },
+        "edit": {
+            "label": "Editar",
+            "menus": [
+                "Deshacer",
+                "Rehacer",
+                "Cortar",
+                "Copiar",
+                "Pegar",
+                "Seleccionar todo",
+                "Indentar la línea",
+                "Reducir la sangría de la línea",
+                "Indentar y pasar a nueva línea"
+            ]
+        },
+        "view": {
+            "label": "Vista",
+            "menus": [
+                "Aumentar el tamaño de fuente",
+                "Reducir el tamaño de fuente",
+                "Establecer tamaño de fuente predeterminado",
+                "Pantalla completa",
+                "Cubrir la pantalla"
+            ]
+        },
+        "settings": {
+            "label": "Configuración",
+            "menus": [
+                "Guardado automático",
+                "Mostrar información sobre herramientas",
+                "Resaltado de sintaxis",
+                "Números de línea",
+                "Autocompletar",
+                "Autocompletar etiquetas",
+                "Nivel de sangría",
+                "Colores de sintaxis",
+                "Etiqueta",
+                "Atributo",
+                "Valor",
+                "Comentario",
+                "Fondo",
+                "Texto",
+                "Idioma"
+            ]
+        },
+        "tools": {
+            "label": "Herramientas",
+            "menus": [
+                "Formularios HTML",
+                "Markdown a HTML"
+            ]
+        }
+    },
+    "french": {
+        "file": {
+            "label": "Fichier",
+            "menus": [
+                "Nouveau",
+                "Nouvelle fenêtre",
+                "Ouvrir",
+                "Enregistrer",
+                "Enregistrer sous",
+                "Quitter"
+            ]
+        },
+        "edit": {
+            "label": "Édition",
+            "menus": [
+                "Annuler",
+                "Rétablir",
+                "Couper",
+                "Copier",
+                "Coller",
+                "Tout sélectionner",
+                "Indenter la ligne",
+                "Réduire l'indentation de la ligne",
+                "Indenter et passer à la ligne suivante"
+            ]
+        },
+        "view": {
+            "label": "Affichage",
+            "menus": [
+                "Augmenter la taille de la police",
+                "Réduire la taille de la police",
+                "Définir la taille de police par défaut",
+                "Plein écran",
+                "Couvrir l'écran"
+            ]
+        },
+        "settings": {
+            "label": "Paramètres",
+            "menus": [
+                "Enregistrement automatique",
+                "Afficher les info-bulles",
+                "Coloration syntaxique",
+                "Numéros de ligne",
+                "Auto-complétion",
+                "Auto-complétion des balises",
+                "Niveau d'indentation",
+                "Couleurs de syntaxe",
+                "Balise",
+                "Attribut",
+                "Valeur",
+                "Commentaire",
+                "Arrière-plan",
+                "Texte",
+                "Langue"
+            ]
+        },
+        "tools": {
+            "label": "Outils",
+            "menus": [
+                "Formulaires HTML",
+                "Markdown vers HTML"
             ]
         }
     }

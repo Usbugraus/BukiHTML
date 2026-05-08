@@ -1,5 +1,5 @@
 {
-    "türkçe": [
+    "turkish": [
         "Yeni",
         "Aç",
         "Kaydet",
@@ -13,18 +13,32 @@
         "Preview",
         "About"
     ],
-    "deutsch": [
+    "german": [
         "Neu",
         "Öffnen",
         "Speichern",
         "Vorschau",
         "Über"
     ],
-    "русский": [
+    "russian": [
         "Новый",
         "Открыть",
         "Сохранить",
         "Предварительный просмотр",
         "О программе"
+    ],
+    "spanish": [
+        "Nuevo",
+        "Abrir",
+        "Guardar",
+        "Vista previa",
+        "Acerca de"
+    ],
+    "french": [
+        "Nouveau",
+        "Ouvrir",
+        "Enregistrer",
+        "Aperçu",
+        "À propos"
     ]
 }

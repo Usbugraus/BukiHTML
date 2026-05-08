@@ -13,9 +13,9 @@ from MarkdownToHTML import md2html_dialog
 from SyntaxHighlighter import highlighter
 from ErrorHandler import error_handler
 from AutoCompleter import AutoCompleter
-from SyntaxColorPicker import pick_syntax_color
+from SyntaxColorPicker import pick_syntax_color, pick_background_color, pick_foreground_color
 
-myappid = 'mycompany.myproduct.subproduct.version'
+myappid = 'com.usbugraus.bukihtml'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 
 try:
@@ -34,6 +34,7 @@ data_directory = os.path.join(os.path.dirname(__file__), "Data")
 menu_labels = {}
 tooltip_labels = {}
 dialogs = {}
+labels = {}
 default_configuration = {
     "show_tooltip": True,
     "language": "english",
@@ -45,9 +46,12 @@ default_configuration = {
     "font_size": 9,
     "auto_complete": True,
     "indent_level": 4,
+    "background": "#ffffff",
+    "foreground": "#000000",
+    "smart_tag_completing": True,
     "syntax_highlighting": {
         "tag": [
-            "#0000bf",
+            "#0040bf",
             [
                 "Consolas",
                 9
@@ -131,6 +135,9 @@ with open(os.path.join(data_directory, "AutoCompleterNames.json"), "r", encoding
 with open(os.path.join(data_directory, "Dialogs.json"), "r", encoding="utf-8") as f:
     dialog_dict = json.load(f)
 
+with open(os.path.join(data_directory, "Labels.json"), "r", encoding="utf-8") as f:
+    label_dict = json.load(f)
+
 if os.path.exists(configuration_file):
     try:
         with open(configuration_file, "r", encoding="utf-8") as f:
@@ -146,7 +153,13 @@ else:
     messagebox.showwarning("Warning", "The configuration file has been moved to another location or deleted. Therefore, the settings have been reset.")
     configuration = default_configuration.copy()
     
-win.geometry(configuration.get("window_size", "800x600"))
+size = configuration.get("window_size", "800x600")
+
+try:
+    win.geometry(size)
+except:
+    win.geometry("800x600")
+
 state = configuration.get("window_state", "normal")
 
 if state == "zoomed":
@@ -164,6 +177,7 @@ lnnumbers = tk.BooleanVar(value=configuration["line_numbers"])
 font_size = configuration["font_size"]
 auto_complete = tk.BooleanVar(value=configuration["auto_complete"])
 indent_level = tk.IntVar(value=configuration["indent_level"])
+smart_tag_completing = tk.BooleanVar(value=configuration["smart_tag_completing"])
 TAG_COLORS = configuration["syntax_highlighting"]
 
 for key in TAG_COLORS:
@@ -269,16 +283,7 @@ def new_file():
     win.update_idletasks()
 
 def update_title():
-    if language.get() == "türkçe":
-        title = "BukiHTML - Yeni" if current_file is None else f"BukiHTML - {current_file}"
-    elif language.get() == "english":
-        title = "BukiHTML - New" if current_file is None else f"BukiHTML - {current_file}"
-    elif language.get() == "deutsch":
-        title = "BukiHTML - Neu" if current_file is None else f"BukiHTML - {current_file}"
-    elif language.get() == "русский":
-        title = "BukiHTML - Новый" if current_file is None else f"BukiHTML - {current_file}"
-    else:
-        title = "BukiHTML"
+    title = labels[1] if current_file is None else f"BukiHTML - {current_file}"
         
     if changed:
         title += " *"
@@ -287,8 +292,11 @@ def update_title():
 def save_on_exit():
     global changed
 
+    win.attributes("-fullscreen", False)
+    cover.set(False)
+
     win.update_idletasks()
-    configuration["window_size"] = f"{win.winfo_width()}x{win.winfo_height()}"
+    configuration["window_size"] = win.geometry().split("+")[0]
     configuration["window_state"] = str(win.state())
 
     update_settings()
@@ -482,16 +490,18 @@ def unindent(event=None):
     return "break"
 
 def update_settings(*args):
-    global menu_labels, configuration_file, tooltip_labels, menu_labels_dict, tooltip_dict, font_size, TAG_COLORS, dialogs, dialog_dict
+    global menu_labels, configuration_file, tooltip_labels, font_size, TAG_COLORS, dialogs, labels
 
     try:
         menu_labels = menu_labels_dict[language.get()]
         tooltip_labels = tooltip_dict[language.get()]
         dialogs = dialog_dict[language.get()]
+        labels = label_dict[language.get()]
     except:
         menu_labels = menu_labels_dict["english"]
         tooltip_labels = tooltip_dict["english"]
         dialogs = dialog_dict["english"]
+        labels = label_dict["english"]
     
     ToolTip(about, tooltip_labels[4], shown=show_tooltip.get())
     ToolTip(run, f"{tooltip_labels[3]} - Ctrl+P", shown=show_tooltip.get())
@@ -538,12 +548,15 @@ def update_settings(*args):
     pre_menu.entryconfig(4, label=menu_labels["settings"]["menus"][4])
     pre_menu.entryconfig(5, label=menu_labels["settings"]["menus"][5])
     pre_menu.entryconfig(6, label=menu_labels["settings"]["menus"][6])
-    pre_menu.entryconfig(7, label=menu_labels["settings"]["menus"][11])
+    pre_menu.entryconfig(7, label=menu_labels["settings"]["menus"][7])
+    pre_menu.entryconfig(8, label=menu_labels["settings"]["menus"][14])
 
-    syntax_menu.entryconfig(0, label=f"{menu_labels["settings"]["menus"][7]}: {TAG_COLORS['tag'][0]}")
-    syntax_menu.entryconfig(1, label=f"{menu_labels["settings"]["menus"][8]}: {TAG_COLORS['attribute'][0]}")
-    syntax_menu.entryconfig(2, label=f"{menu_labels["settings"]["menus"][9]}: {TAG_COLORS['value'][0]}")
-    syntax_menu.entryconfig(3, label=f"{menu_labels["settings"]["menus"][10]}: {TAG_COLORS['comment'][0]}")
+    syntax_menu.entryconfig(0, label=f"{menu_labels['settings']['menus'][8]}: {TAG_COLORS['tag'][0]}")
+    syntax_menu.entryconfig(1, label=f"{menu_labels['settings']['menus'][9]}: {TAG_COLORS['attribute'][0]}")
+    syntax_menu.entryconfig(2, label=f"{menu_labels['settings']['menus'][10]}: {TAG_COLORS['value'][0]}")
+    syntax_menu.entryconfig(3, label=f"{menu_labels['settings']['menus'][11]}: {TAG_COLORS['comment'][0]}")
+    syntax_menu.entryconfig(4, label=f"{menu_labels['settings']['menus'][12]}: {configuration['background']}")
+    syntax_menu.entryconfig(5, label=f"{menu_labels['settings']['menus'][13]}: {configuration['foreground']}")
     
     menu.entryconfig(5, label=menu_labels["tools"]["label"])
     tool_menu.entryconfig(0, label=menu_labels["tools"]["menus"][0])
@@ -551,6 +564,9 @@ def update_settings(*args):
 
     auto_completer.shown = auto_complete.get()
     auto_completer.font_size = font_size
+
+    text.config(bg=configuration['background'])
+    text.config(fg=configuration['foreground'])
 
     update_title()
     update_status()
@@ -566,6 +582,9 @@ def update_settings(*args):
         "font_size": font_size,
         "auto_complete": auto_complete.get(),
         "indent_level": indent_level.get(),
+        "background": text.cget("bg"),
+        "foreground": text.cget("fg"),
+        "smart_tag_completing": smart_tag_completing.get(),
         "syntax_highlighting": TAG_COLORS
         }
         
@@ -602,6 +621,7 @@ def increase_size():
         update_fonts()
         highlight(text)
         update_settings()
+        redraw_line_numbers()
 
 def decrease_size():
     global font_size
@@ -610,6 +630,7 @@ def decrease_size():
         update_fonts()
         highlight(text)
         update_settings()
+        redraw_line_numbers()
         
 def reset_size():
     global font_size
@@ -617,6 +638,7 @@ def reset_size():
     update_fonts()
     highlight(text)
     update_settings()
+    redraw_line_numbers()
     
 def update_view(*args):
     if fullscreen.get():
@@ -639,16 +661,7 @@ def update_view(*args):
         
 def update_status():
     global current_file
-    if language.get() == "türkçe":
-        newfile_status = "Yeni"
-    elif language.get() == "english":
-        newfile_status = "New"
-    elif language.get() == "deutsch":
-        newfile_status = "Neu"
-    elif language.get() == "русский":
-        newfile_status = "Новый"
-    else:
-        newfile_status = "New"
+    newfile_status = labels[0]
         
     def get_cursor_position():
         index = text.index(tk.INSERT)
@@ -685,9 +698,7 @@ def on_modified(event=None):
     highlight(text)
     redraw_line_numbers()
     check_easter_egg()
-
     text.edit_modified(False)
-
 
 def smart_backspace(event=None):
     spaces = indent_level.get()
@@ -698,33 +709,63 @@ def smart_backspace(event=None):
         return "break"
 
 def auto_close_tag(event=None):
-    if event.char != ">":
+    if smart_tag_completing.get():
+        if event.char != ">":
+            return
+
+        cursor = text.index("insert")
+        line_start = text.get("insert linestart", "insert")
+
+        match = re.search(r"<([a-zA-Z0-9]+)$", line_start)
+        if not match:
+            return
+
+        tag = match.group(1)
+
+        if tag.startswith("/"):
+            return
+
+        if tag in self_closing_tags:
+            return
+
+        text.insert(cursor, f"</{tag}>")
+        text.mark_set("insert", cursor)
+
         return
 
-    cursor = text.index("insert")
-    line_start = text.get("insert linestart", "insert")
+def hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip("#")
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
 
-    match = re.search(r"<([a-zA-Z0-9]+)$", line_start)
-    if not match:
-        return
+def get_text_color_hex(hex_color):
+    r, g, b = hex_to_rgb(hex_color)
+    luminance = 0.299*r + 0.587*g + 0.114*b
+    return "#000000" if luminance > 150 else "#FFFFFF"
 
-    tag = match.group(1)
-
-    if tag.startswith("/"):
-        return
-
-    if tag in self_closing_tags:
-        return
-
-    text.insert(cursor, f"</{tag}>")
-    text.mark_set("insert", cursor)
-
-    return
-
-def set_syntax_color(syntax):
+def set_syntax_color(syntax, menuconfig=0):
     global TAG_COLORS
-    pick_syntax_color(win, TAG_COLORS, syntax=syntax, language=language.get())
+    color = pick_syntax_color(win, TAG_COLORS, syntax=syntax, language=language.get())
     highlight(text)
+    if color:
+        syntax_menu.entryconfig(menuconfig, background=color, foreground=get_text_color_hex(color))
+    update_settings()
+
+def set_background_color():
+    color = pick_background_color(win, language=language.get())
+    highlight(text)
+    if color:
+        configuration["background"] = color
+        text.config(bg=color)
+        syntax_menu.entryconfig(4, background=color, foreground=get_text_color_hex(color))
+    update_settings()
+
+def set_foreground_color():
+    color = pick_foreground_color(win, language=language.get())
+    highlight(text)
+    if color:
+        configuration["foreground"] = color
+        text.config(fg=color)
+        syntax_menu.entryconfig(5, background=color, foreground=get_text_color_hex(color))
     update_settings()
     
 show_tooltip.trace_add("write", update_settings)
@@ -739,7 +780,6 @@ indent_level.trace_add("write", update_settings)
 
 text.bind("<Shift-Tab>", unindent)
 text.bind("<Tab>", indent)
-text.bind("<<Modified>>", update)
 text.bind("<BackSpace>", smart_backspace)
 text.bind(">", auto_close_tag)
 
@@ -800,6 +840,7 @@ pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=show_t
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=hghlgtning)
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=lnnumbers)
 pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=auto_complete)
+pre_menu.add_checkbutton(label="", onvalue=True, offvalue=False, variable=smart_tag_completing)
 
 indent_menu = tk.Menu(pre_menu, tearoff=0, activebackground="#0040bf", activeforeground="#ffffff")
 indent_menu.add_radiobutton(label="2", variable=indent_level, value=2)
@@ -810,17 +851,21 @@ indent_menu.add_radiobutton(label="6", variable=indent_level, value=6)
 pre_menu.add_cascade(menu=indent_menu, label="")
 
 syntax_menu = tk.Menu(pre_menu, tearoff=0, activebackground="#0040bf", activeforeground="#ffffff")
-syntax_menu.add_command(label="", command=lambda: set_syntax_color("tag"))
-syntax_menu.add_command(label="", command=lambda: set_syntax_color("attribute"))
-syntax_menu.add_command(label="", command=lambda: set_syntax_color("value"))
-syntax_menu.add_command(label="", command=lambda: set_syntax_color("comment"))
+syntax_menu.add_command(label="", command=lambda: set_syntax_color("tag", menuconfig=0), background=TAG_COLORS["tag"][0], foreground=get_text_color_hex(TAG_COLORS["tag"][0]))
+syntax_menu.add_command(label="", command=lambda: set_syntax_color("attribute", menuconfig=1), background=TAG_COLORS["attribute"][0], foreground=get_text_color_hex(TAG_COLORS["attribute"][0]))
+syntax_menu.add_command(label="", command=lambda: set_syntax_color("value", menuconfig=2), background=TAG_COLORS["value"][0], foreground=get_text_color_hex(TAG_COLORS["value"][0]))
+syntax_menu.add_command(label="", command=lambda: set_syntax_color("comment", menuconfig=3), background=TAG_COLORS["comment"][0], foreground=get_text_color_hex(TAG_COLORS["comment"][0]))
+syntax_menu.add_command(label="", command=lambda: set_background_color(), background=configuration["background"], foreground=get_text_color_hex(configuration["background"]))
+syntax_menu.add_command(label="", command=lambda: set_foreground_color(), background=configuration["foreground"], foreground=get_text_color_hex(configuration["foreground"]))
 pre_menu.add_cascade(menu=syntax_menu, label="")
 
 lang_menu = tk.Menu(pre_menu, tearoff=0, activebackground="#0040bf", activeforeground="#ffffff")
-lang_menu.add_radiobutton(label='Türkçe', variable=language, value="türkçe")
+lang_menu.add_radiobutton(label='Türkçe', variable=language, value="turkish")
 lang_menu.add_radiobutton(label='English', variable=language, value="english")
-lang_menu.add_radiobutton(label='Deutsch', variable=language, value="deutsch")
-lang_menu.add_radiobutton(label='Pусский', variable=language, value="русский")
+lang_menu.add_radiobutton(label='Deutsch', variable=language, value="german")
+lang_menu.add_radiobutton(label='Pусский', variable=language, value="russian")
+lang_menu.add_radiobutton(label='Español', variable=language, value="spanish")
+lang_menu.add_radiobutton(label='Français', variable=language, value="french")
 pre_menu.add_cascade(menu=lang_menu, label="")
 menu.add_cascade(menu=pre_menu, label="")
 
