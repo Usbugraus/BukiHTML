@@ -16,9 +16,12 @@ except Exception:
         pass
 
 data_directory = os.path.join(os.path.dirname(__file__), "Data")
-    
+
 with open(os.path.join(data_directory, "AutoCompleterNames.json"), "r", encoding="utf-8") as f:
     names = json.load(f)
+
+with open(os.path.join(data_directory, "Dialogs.json"), "r", encoding="utf-8") as f:
+    dialog_dict = json.load(f)
 
 def html_to_md(html_text=""):
     return html2text.html2text(html_text)
@@ -49,14 +52,21 @@ def md_to_html(md_text=""):
 
 def md2html_dialog(parent, tag_colors, language="türkçe", font_size=9):
     global names
-    w = tk.Toplevel(parent)
-    w.resizable(False, False)
-    w.lift()
-    w.focus()
-    w.transient(parent)
-    w.focus_force()
-    w.grab_set()
-    toolwindow(w)
+    win = tk.Toplevel(parent)
+    win.resizable(False, False)
+    win.lift()
+    win.focus()
+    win.transient(parent)
+    win.focus_force()
+    win.grab_set()
+    toolwindow(win)
+
+    try:
+        dialogs = dialog_dict[language]
+    except:
+        dialogs = dialog_dict["english"]
+
+    win.title(dialogs["md"])
 
     style = ttk.Style()
     style.theme_use("default")
@@ -74,29 +84,20 @@ def md2html_dialog(parent, tag_colors, language="türkçe", font_size=9):
     style.configure("Out.TLabelframe", background="SystemButtonFace", borderwidth=1, relief=tk.RAISED)
 
     style.configure("In.TLabelframe", background="SystemButtonFace", borderwidth=1, relief=tk.SUNKEN)
-    
+
     if hasattr(sys, "_MEIPASS"):
         icon_path = os.path.join(sys._MEIPASS, "Icon.ico")
     else:
         icon_path = os.path.join(os.path.dirname(__file__), "Icon.ico")
 
     if os.path.exists(icon_path):
-        w.iconbitmap(icon_path)
-    
-    if language == "türkçe":
-        w.title("Markdown'dan HTML'e")
-    elif language == "english":
-        w.title("Markdown to HTML")
-    elif language == "deutsch":
-        w.title("Von Markdown zu HTML")
-    elif language == "русский":
-        w.title("Из Markdown в HTML")
-        
-    md_frame = ttk.LabelFrame(w, text="Markdown", style="Out.TLabelframe", padding=5)
+        win.iconbitmap(icon_path)
+
+    md_frame = ttk.LabelFrame(win, text="Markdown", style="Out.TLabelframe", padding=5)
     md_frame.pack(padx=10, pady=(10, 0))
-    
+
     md_text = tk.Text(md_frame, bd=1, padx=5, pady=5, font=("Consolas", font_size), width=60 if font_size < 12 else 30, height=12 if font_size < 12 else 8, wrap="none")
-    
+
     mscroll = ttk.Scrollbar(md_frame)
     mscroll.pack(side="right", fill="y")
     mscroll.config(command=md_text.yview)
@@ -104,15 +105,15 @@ def md2html_dialog(parent, tag_colors, language="türkçe", font_size=9):
     mscroll_h = ttk.Scrollbar(md_frame, orient="horizontal")
     mscroll_h.pack(side="bottom", fill="x")
     mscroll_h.config(command=md_text.xview)
-    
+
     md_text.config(xscrollcommand=mscroll_h.set, yscrollcommand=mscroll.set)
     md_text.pack()
-    
-    html_frame = ttk.LabelFrame(w, text="HTML", style="Out.TLabelframe", padding=5)
+
+    html_frame = ttk.LabelFrame(win, text="HTML", style="Out.TLabelframe", padding=5)
     html_frame.pack(padx=10, pady=10)
-    
+
     html_text = tk.Text(html_frame, bd=1, padx=5, pady=5, font=("Consolas", font_size), width=60 if font_size < 12 else 30, height=12 if font_size < 12 else 8, wrap="none")
-    
+
     for tag, style in tag_colors.items():
         html_text.tag_config(
             tag,
@@ -120,7 +121,7 @@ def md2html_dialog(parent, tag_colors, language="türkçe", font_size=9):
             selectforeground="white",
             font=style[1]
         )
-        
+
     hscroll = ttk.Scrollbar(html_frame)
     hscroll.pack(side="right", fill="y")
     hscroll.config(command=html_text.yview)

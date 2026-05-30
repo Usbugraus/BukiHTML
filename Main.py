@@ -35,52 +35,6 @@ menu_labels = {}
 tooltip_labels = {}
 dialogs = {}
 labels = {}
-default_configuration = {
-    "show_tooltip": True,
-    "language": "english",
-    "auto_save": False,
-    "highlighting": True,
-    "line_numbers": True,
-    "window_size": "800x600",
-    "window_state": "normal",
-    "font_size": 9,
-    "auto_complete": True,
-    "indent_level": 4,
-    "background": "#ffffff",
-    "foreground": "#000000",
-    "smart_tag_completing": True,
-    "syntax_highlighting": {
-        "tag": [
-            "#0040bf",
-            [
-                "Consolas",
-                9
-            ]
-        ],
-        "attribute": [
-            "#bf0000",
-            [
-                "Consolas",
-                9
-            ]
-        ],
-        "value": [
-            "#00bf00",
-            [
-                "Consolas",
-                9
-            ]
-        ],
-        "comment": [
-            "#808080",
-            [
-                "Consolas",
-                9,
-                "italic"
-            ]
-        ]
-    }
-}
 self_closing_tags = {
     "br", "img", "hr", "input", "meta", "link"
 }
@@ -103,6 +57,9 @@ style.configure("TProgressbar", background="#0040bf", troughcolor="#bfbfbf")
 
 style.configure("TScrollbar", background="SystemButtonFace", troughcolor="#bfbfbf", arrowsize=14)
 style.map("TScrollbar", background=[("active", "SystemButtonFace"), ("!active", "SystemButtonFace")], relief=[("pressed", "sunken")])
+
+style.configure("TCombobox", focuswidth=2, focuscolor="#0040bf", arrowsize=14, selectbackground="#0040bf", background="SystemButtonFace")
+style.map("TCombobox", fieldbackground=[("readonly", "#ffffff"), ("disabled", "SystemButtonFace")], background=[("active", "SystemButtonFace"), ("pressed", "#ffff00")])
 
 style.configure("Out.TFrame", background="SystemButtonFace", borderwidth=1, relief=tk.RAISED)
 
@@ -137,6 +94,9 @@ with open(os.path.join(data_directory, "Dialogs.json"), "r", encoding="utf-8") a
 
 with open(os.path.join(data_directory, "Labels.json"), "r", encoding="utf-8") as f:
     label_dict = json.load(f)
+
+with open(os.path.join(data_directory, "DefaultConfiguration.json"), "r", encoding="utf-8") as f:
+    default_configuration = json.load(f)
 
 if os.path.exists(configuration_file):
     try:
@@ -226,7 +186,7 @@ def save_file(force=False):
 def save_as():
     global current_file, filepath, dialogs
 
-    filepath = filedialog.asksaveasfilename(defaultextension='.html', filetypes=[(dialogs["save"][0], '*.html'), (dialogs["save"][1], '*.*')], title=dialogs["save"][2])
+    filepath = filedialog.asksaveasfilename(title=dialogs["save"][4], filetypes=[(dialogs["save"][0], '*.html'), (dialogs["save"][1], '*.xml'), (dialogs["save"][2], '*.svg'), (dialogs["save"][3], '*.*')])
 
     if filepath:
         current_file = filepath
@@ -236,7 +196,7 @@ def save_as():
 def open_file():
     global filepath, current_file, changed
 
-    filepath = filedialog.askopenfilename(title=dialogs["open"][2], filetypes=[(dialogs["open"][0], '*.html'), (dialogs["open"][1], '*.*')])
+    filepath = filedialog.askopenfilename(title=dialogs["open"][4], filetypes=[(dialogs["open"][0], '*.html'), (dialogs["open"][1], '*.xml'), (dialogs["open"][2], '*.svg'), (dialogs["open"][3], '*.*')])
     
     if filepath:
         try:
@@ -252,6 +212,8 @@ def open_file():
             update()
             highlight(text)
             save.config(state="disabled")
+            preview_combobox.set(os.path.splitext(current_file)[1][1:].upper())
+            preview_combobox.config(state="disabled")
             text.edit_reset()
             update_status()
         except Exception:
@@ -281,6 +243,7 @@ def new_file():
     update_status()
     text.edit_reset()
     win.update_idletasks()
+    preview_combobox.config(state="readonly")
 
 def update_title():
     title = labels[1] if current_file is None else f"BukiHTML - {current_file}"
@@ -332,11 +295,11 @@ def update(event=None):
         text.edit_modified(False)
         save.config(state="normal")
         
-def run_():
+def open_preview():
     global current_file
     if not current_file:
         code = text.get("1.0", "end")
-        tmp_html = tempfile.NamedTemporaryFile(delete=False, suffix=".html", mode='w', encoding='utf-8')
+        tmp_html = tempfile.NamedTemporaryFile(delete=False, suffix=f".{preview_combobox.get().lower()}", mode='w', encoding='utf-8')
         tmp_html.write(code)
         tmp_html.close()
         webbrowser.open(tmp_html.name)
@@ -403,53 +366,6 @@ else:
 if os.path.exists(icon_path):
     win.iconbitmap(icon_path)
 
-toolbar_frame = ttk.Frame(win)
-toolbar_frame.grid(row=0, column=0, sticky="ew")
-
-file_toolbar = ttk.Frame(toolbar_frame, padding=5, style="Out.TFrame")
-file_toolbar.grid(row=0, column=0, padx=(10, 0), pady=(10, 0), sticky="w")
-
-html_toolbar = ttk.Frame(toolbar_frame, padding=5, style="Out.TFrame")
-html_toolbar.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="w")
-
-about_toolbar_frame = ttk.Frame(win)
-about_toolbar_frame.grid(row=0, column=1, sticky="e")
-
-about_toolbar = ttk.Frame(about_toolbar_frame, padding=5, style="Out.TFrame")
-about_toolbar.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="e")
-
-new = ttk.Button(file_toolbar, text="\uE130", command=new_file, style="ToolbarButton.TButton")
-new.grid(row=0, column=0)
-
-open_ = ttk.Button(file_toolbar, text="\uE197", command=open_file, style="ToolbarButton.TButton")
-open_.grid(row=0, column=1)
-
-save = ttk.Button(file_toolbar, text="\uE105", command=save_file, style="ToolbarButton.TButton", state=("normal" if not filepath else "disabled"))
-save.grid(row=0, column=2)
-
-run = ttk.Button(html_toolbar, text="\uE163", command=run_, style="MarkedToolbarButton.TButton")
-run.grid(row=0, column=3)
-
-about = ttk.Button(about_toolbar, text="\uE946", command=show_about, style="ToolbarButton.TButton")
-about.grid(row=0, column=0, sticky="e")
-
-scroll = ttk.Scrollbar(editor)
-scroll.pack(side="right", padx=(0, 5), pady=5, fill="y")
-scroll.config(command=on_scrollbar)
-
-scroll_h = ttk.Scrollbar(editor, orient="horizontal")
-scroll_h.pack(side="bottom", padx=(5, 0), pady=(0, 5), fill="x")
-scroll_h.config(command=text.xview)
-text.config(
-    xscrollcommand=scroll_h.set,
-    yscrollcommand=on_text_scroll
-)
-
-line_numbers.pack(side="left", fill="y", padx=(5, 0), pady=5)
-text.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=(5, 0))
-
-auto_completer = AutoCompleter(text, names, font_size=font_size)
-
 def indent(event=None):
     spaces = " " * indent_level.get()
 
@@ -504,7 +420,7 @@ def update_settings(*args):
         labels = label_dict["english"]
     
     ToolTip(about, tooltip_labels[4], shown=show_tooltip.get())
-    ToolTip(run, f"{tooltip_labels[3]} - Ctrl+P", shown=show_tooltip.get())
+    ToolTip(preview_button, f"{tooltip_labels[3]} - Ctrl+P", shown=show_tooltip.get())
     ToolTip(save, f"{tooltip_labels[2]} - Ctrl+S", shown=show_tooltip.get())
     ToolTip(open_, f"{tooltip_labels[1]} - Ctrl+O", shown=show_tooltip.get())
     ToolTip(new, f"{tooltip_labels[0]} - Ctrl+N", shown=show_tooltip.get())
@@ -551,12 +467,12 @@ def update_settings(*args):
     pre_menu.entryconfig(7, label=menu_labels["settings"]["menus"][7])
     pre_menu.entryconfig(8, label=menu_labels["settings"]["menus"][14])
 
-    syntax_menu.entryconfig(0, label=f"{menu_labels['settings']['menus'][8]}: {TAG_COLORS['tag'][0]}")
-    syntax_menu.entryconfig(1, label=f"{menu_labels['settings']['menus'][9]}: {TAG_COLORS['attribute'][0]}")
-    syntax_menu.entryconfig(2, label=f"{menu_labels['settings']['menus'][10]}: {TAG_COLORS['value'][0]}")
-    syntax_menu.entryconfig(3, label=f"{menu_labels['settings']['menus'][11]}: {TAG_COLORS['comment'][0]}")
-    syntax_menu.entryconfig(4, label=f"{menu_labels['settings']['menus'][12]}: {configuration['background']}")
-    syntax_menu.entryconfig(5, label=f"{menu_labels['settings']['menus'][13]}: {configuration['foreground']}")
+    syntax_menu.entryconfig(0, label=f"{menu_labels['settings']['menus'][8]}: {TAG_COLORS['tag'][0].upper()}")
+    syntax_menu.entryconfig(1, label=f"{menu_labels['settings']['menus'][9]}: {TAG_COLORS['attribute'][0].upper()}")
+    syntax_menu.entryconfig(2, label=f"{menu_labels['settings']['menus'][10]}: {TAG_COLORS['value'][0].upper()}")
+    syntax_menu.entryconfig(3, label=f"{menu_labels['settings']['menus'][11]}: {TAG_COLORS['comment'][0].upper()}")
+    syntax_menu.entryconfig(4, label=f"{menu_labels['settings']['menus'][12]}: {configuration['background'].upper()}")
+    syntax_menu.entryconfig(5, label=f"{menu_labels['settings']['menus'][13]}: {configuration['foreground'].upper()}")
     
     menu.entryconfig(5, label=menu_labels["tools"]["label"])
     tool_menu.entryconfig(0, label=menu_labels["tools"]["menus"][0])
@@ -767,6 +683,57 @@ def set_foreground_color():
         text.config(fg=color)
         syntax_menu.entryconfig(5, background=color, foreground=get_text_color_hex(color))
     update_settings()
+
+toolbar_frame = ttk.Frame(win)
+toolbar_frame.grid(row=0, column=0, sticky="ew")
+
+file_toolbar = ttk.Frame(toolbar_frame, padding=5, style="Out.TFrame")
+file_toolbar.grid(row=0, column=0, padx=(10, 0), pady=(10, 0), sticky="w")
+
+preview_toolbar = ttk.Frame(toolbar_frame, padding=5, style="Out.TFrame")
+preview_toolbar.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="w")
+
+about_toolbar_frame = ttk.Frame(win)
+about_toolbar_frame.grid(row=0, column=1, sticky="e")
+
+about_toolbar = ttk.Frame(about_toolbar_frame, padding=5, style="Out.TFrame")
+about_toolbar.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="e")
+
+new = ttk.Button(file_toolbar, text="\uE130", command=new_file, style="ToolbarButton.TButton")
+new.grid(row=0, column=0)
+
+open_ = ttk.Button(file_toolbar, text="\uE197", command=open_file, style="ToolbarButton.TButton")
+open_.grid(row=0, column=1)
+
+save = ttk.Button(file_toolbar, text="\uE105", command=save_file, style="ToolbarButton.TButton", state=("normal" if not filepath else "disabled"))
+save.grid(row=0, column=2)
+
+preview_button = ttk.Button(preview_toolbar, text="\uE163", command=open_preview, style="MarkedToolbarButton.TButton")
+preview_button.grid(row=0, column=0)
+
+preview_combobox = ttk.Combobox(preview_toolbar, state="readonly", width=10, values=["HTML", "SVG"])
+preview_combobox.grid(row=0, column=1, padx=5)
+preview_combobox.set("HTML")
+
+about = ttk.Button(about_toolbar, text="\uE946", command=show_about, style="ToolbarButton.TButton")
+about.grid(row=0, column=0, sticky="e")
+
+scroll = ttk.Scrollbar(editor)
+scroll.pack(side="right", padx=(0, 5), pady=5, fill="y")
+scroll.config(command=on_scrollbar)
+
+scroll_h = ttk.Scrollbar(editor, orient="horizontal")
+scroll_h.pack(side="bottom", padx=(5, 0), pady=(0, 5), fill="x")
+scroll_h.config(command=text.xview)
+text.config(
+    xscrollcommand=scroll_h.set,
+    yscrollcommand=on_text_scroll
+)
+
+line_numbers.pack(side="left", fill="y", padx=(5, 0), pady=5)
+text.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=(5, 0))
+
+auto_completer = AutoCompleter(text, names, font_size=font_size)
     
 show_tooltip.trace_add("write", update_settings)
 language.trace_add("write", update_settings)
@@ -793,7 +760,7 @@ win.bind("<Control-plus>", lambda e: increase_size())
 win.bind("<Control-minus>", lambda e: decrease_size())
 win.bind("<Control-Shift-R>", lambda e: reset_size())
 win.bind("<Control-Shift-N>", lambda e: subprocess.Popen([sys.executable, __file__]))
-win.bind("<Control-p>", lambda e: run_())
+win.bind("<Control-p>", lambda e: open_preview())
 win.bind("<F11>", toggle_fullscreen)
 win.bind("<Escape>", exit_fullscreen)
 
@@ -860,12 +827,12 @@ syntax_menu.add_command(label="", command=lambda: set_foreground_color(), backgr
 pre_menu.add_cascade(menu=syntax_menu, label="")
 
 lang_menu = tk.Menu(pre_menu, tearoff=0, activebackground="#0040bf", activeforeground="#ffffff")
-lang_menu.add_radiobutton(label='Türkçe', variable=language, value="turkish")
-lang_menu.add_radiobutton(label='English', variable=language, value="english")
-lang_menu.add_radiobutton(label='Deutsch', variable=language, value="german")
-lang_menu.add_radiobutton(label='Pусский', variable=language, value="russian")
-lang_menu.add_radiobutton(label='Español', variable=language, value="spanish")
-lang_menu.add_radiobutton(label='Français', variable=language, value="french")
+lang_menu.add_radiobutton(label='Türkçe', variable=language, value="turkish", command=update_settings)
+lang_menu.add_radiobutton(label='English', variable=language, value="english", command=update_settings)
+lang_menu.add_radiobutton(label='Deutsch', variable=language, value="german", command=update_settings)
+lang_menu.add_radiobutton(label='Pусский', variable=language, value="russian", command=update_settings)
+lang_menu.add_radiobutton(label='Español', variable=language, value="spanish", command=update_settings)
+lang_menu.add_radiobutton(label='Français', variable=language, value="french", command=update_settings)
 pre_menu.add_cascade(menu=lang_menu, label="")
 menu.add_cascade(menu=pre_menu, label="")
 
