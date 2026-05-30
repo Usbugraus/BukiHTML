@@ -8,10 +8,13 @@ BukiHTML is an advanced and fast HTML IDE made with Python and Tkinter. With Buk
 - HTML form menu
 - Move to a new line by adding indentation
 - Auto tag completing
+- XML and SVG support
 
 ## Installation
-No need to install. If you downloaded it as an application, extract the `.zip` file and run the application.
+No installation required. If you downloaded the application, extract the `.zip` file and run it.
+
 ***
+
 # BukiHTML - TR
 BukiHTML, Python ve Tkinter ile yapılmış gelişmiş ve hızlı bir HTML IDE'sidir. BukiHTML ile kendi web sitelerinizi oluşturabilirsiniz.
 
@@ -22,10 +25,13 @@ BukiHTML, Python ve Tkinter ile yapılmış gelişmiş ve hızlı bir HTML IDE's
 - HTML form menüsü
 - Girinti ekleyerek yeni satıra geçme
 - Otomatik etiket tamamlama
+- XML ve SVG desteği
 
 ## Kurulum
 Kurmanıza gerek yok. Eğer uygulama olarak indirdiyseniz `.zip` dosyasını çıkartın ve uygulamayı çalıştırın.
+
 ***
+
 # BukiHTML - DE
 BukiHTML ist eine fortgeschrittene und schnelle HTML-IDE, die mit Python und Tkinter erstellt wurde. Mit BukiHTML können Sie Ihre eigenen Webseiten erstellen.
 
@@ -36,10 +42,13 @@ BukiHTML ist eine fortgeschrittene und schnelle HTML-IDE, die mit Python und Tki
 - HTML-Formularmenü
 - Wechsel auf eine neue Zeile durch Einrücken
 - Auto-Tag-Vervollständigung
+- XML- und SVG-Unterstützung
 
 ## Installation
 Sie müssen nichts installieren. Wenn Sie es als Anwendung heruntergeladen haben, entpacken Sie die `.zip`-Datei und starten Sie die Anwendung.
+
 ***
+
 # BukiHTML - RU
 BukiHTML — это продвинутая и быстрая среда разработки HTML, созданная с помощью Python и Tkinter. С BukiHTML вы можете создавать свои собственные веб-сайты.
 
@@ -50,6 +59,7 @@ BukiHTML — это продвинутая и быстрая среда разр
 - Меню HTML-форм
 - Переход на новую строку с добавлением отступа
 - Автозавершение тегов
+- Поддержка XML и SVG
 
 ## Установка
 Установка не требуется. Если вы скачали его как приложение, распакуйте `.zip` файл и запустите приложение.
