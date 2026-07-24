@@ -14,6 +14,7 @@ from SyntaxHighlighter import highlighter
 from ErrorHandler import error_handler
 from AutoCompleter import AutoCompleter
 from SyntaxColorPicker import pick_syntax_color, pick_background_color, pick_foreground_color
+from About import about
 
 myappid = 'com.usbugraus.bukihtml'
 ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -308,7 +309,7 @@ def open_preview():
         webbrowser.open(current_file)
         
 def show_about():
-    messagebox.showinfo(dialogs["about"][0], dialogs["about"][1])
+    about(win, language=language.get())
     
 def autosv(event):
     global current_file
@@ -419,7 +420,7 @@ def update_settings(*args):
         dialogs = dialog_dict["english"]
         labels = label_dict["english"]
     
-    ToolTip(about, tooltip_labels[4], shown=show_tooltip.get())
+    ToolTip(about_button, tooltip_labels[4], shown=show_tooltip.get())
     ToolTip(preview_button, f"{tooltip_labels[3]} - Ctrl+P", shown=show_tooltip.get())
     ToolTip(save, f"{tooltip_labels[2]} - Ctrl+S", shown=show_tooltip.get())
     ToolTip(open_, f"{tooltip_labels[1]} - Ctrl+O", shown=show_tooltip.get())
@@ -616,14 +617,6 @@ def on_modified(event=None):
     check_easter_egg()
     text.edit_modified(False)
 
-def smart_backspace(event=None):
-    spaces = indent_level.get()
-    cur = text.get("insert linestart", "insert")
-
-    if cur.endswith(" " * spaces):
-        text.delete(f"insert-{spaces}c", "insert")
-        return "break"
-
 def auto_close_tag(event=None):
     if smart_tag_completing.get():
         if event.char != ">":
@@ -715,8 +708,8 @@ preview_combobox = ttk.Combobox(preview_toolbar, state="readonly", width=10, val
 preview_combobox.grid(row=0, column=1, padx=5)
 preview_combobox.set("HTML")
 
-about = ttk.Button(about_toolbar, text="\uE946", command=show_about, style="ToolbarButton.TButton")
-about.grid(row=0, column=0, sticky="e")
+about_button = ttk.Button(about_toolbar, text="\uE946", command=show_about, style="ToolbarButton.TButton")
+about_button.grid(row=0, column=0, sticky="e")
 
 scroll = ttk.Scrollbar(editor)
 scroll.pack(side="right", padx=(0, 5), pady=5, fill="y")
@@ -747,7 +740,6 @@ indent_level.trace_add("write", update_settings)
 
 text.bind("<Shift-Tab>", unindent)
 text.bind("<Tab>", indent)
-text.bind("<BackSpace>", smart_backspace)
 text.bind(">", auto_close_tag)
 
 win.bind("<Control-s>", lambda e: save_file())
